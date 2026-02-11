@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoL Analyzer - Análise de Performance</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" class="fas fa-chart-line" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <h1>LoL Analyzer</h1>
+                </div>
+                <nav class="nav">
+                    <a href="#home" class="nav-link active">Início</a>
+                    <a href="#features" class="nav-link">Recursos</a>
+                    <a href="#about" class="nav-link">Sobre</a>
+                </nav>
+            </div>
+        </header>
+        
+        <nav>
+            <!-- searchTitle Section -->
+            <section class="searchTitle" id="home">
+                <div class="searchTitle-content">
+                    <div class="searchTitle-text">
+                        <h2 class="searchTitle-title">Analise sua Performance no League of Legends</h2>
+                        <p class="searchTitle-description">
+                            Descrubas suas estatísticas, analise seu desempenho e acompanhe sua evolução deis do início no jogo mais popular do mundo.
+                        </p>
+                    </div>
+                    
+                    <div class="search-form">
+                        <h3>Buscar Jogador</h3>
+                        <form id="playerForm">
+                            <div class="form-group">
+                                <label for="playerName">Nome do Invocador</label>
+                                <input type="text" id="playerName" name="playerName" placeholder="Ex: Jogador" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="playerTag">Tag</label>
+                                <input type="text" id="playerTag" name="playerTag" placeholder="Ex: br1" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="region">Região</label>
+                                <select id="region" name="region" required>
+                                    <option value="">Selecione uma região</option>
+                                    <option value="americas">Americas (BR, NA, LAN, LAS)</option>
+                                    <option value="europe">Europe (EUW, EUNE, TR, RU)</option>
+                                    <option value="asia">Asia (KR, JP, OCE)</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn-primary" id="analyzeBtn">
+                                <i class="fas fa-search"></i>
+                                Analisar Performance
+                            </button>
+                        </form>
+                        
+                        <div class="loading" id="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Coletando dados das partidas...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features" id="features">
+                <div class="features-content">
+                    <h2>Recursos Disponíveis</h2>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <h3>Estatísticas Gerais</h3>
+                            <p>KDA médio, taxa de vitória, dano total, farm e muito mais</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-user-ninja"></i>
+                            </div>
+                            <h3>Análise por Campeão</h3>
+                            <p>Performance detalhada com seus campeões mais jogados</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-map"></i>
+                            </div>
+                            <h3>Performance por Lane</h3>
+                            <p>Estatísticas específicas para cada posição no mapa</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h3>Gráficos Interativos</h3>
+                            <p>Visualizações dinâmicas dos seus dados de jogo</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h3>Histórico de Partidas</h3>
+                            <p>Análise detalhada das suas últimas partidas</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <h3>Vision Score</h3>
+                            <p>Análise da sua contribuição em visão e wards</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section class="about" id="about">
+                <div class="about-wrapper">
+                    <div class="about-text">
+                        <h2>Sobre o LoL Analyzer</h2>
+                        <p>O <strong>LoL Analyzer</strong> utiliza a API oficial da Riot Games para coletar e analisar
+                            dados das suas partidas no League of Legends.</p>
+                        <p>A plataforma transforma estatísticas brutas em <strong>insights claros</strong>, mostrando
+                            sua evolução desde a primeira partida até os jogos mais recentes.</p>
+                        <p>Ideal para jogadores que querem evoluir de forma estratégica, baseada em dados reais.</p>
+                    </div>
+
+                    <div class="about-image">
+                        <img 
+                            src="https://cmsassets.rgpub.io/sanity/images/dsfx7636/news/0c5c2627f823f5ee27062920c2dd921b322f4338-2712x2160.png?accountingTag=LoL&auto=format&fit=fill&q=80&h=1735"
+                            alt="League of Legends artwork"
+                        >
+                    </div>
+                </div>
+            </section>
+        </nav>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2026 LoL Analyzer - Desenvolvido por João Victor Magalhães Matusalen.</p>
+                <div class="social-links">
+                    <a class="social-link" target="_blank" href="https://github.com/joaoMatusalen"><i class="fab fa-github"></i></a>
+                    <a class="social-link" target="_blank" href="https://www.linkedin.com/in/joaomatusalen/"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="static/js/main.js"></script>
+</body>
+</html>
+
