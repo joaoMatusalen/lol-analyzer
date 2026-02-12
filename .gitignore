@@ -1,3 +1,5 @@
-*.json
 *.vscode
-*.env
+*.json
+*.parquet
+*.pkl
+*.csv
