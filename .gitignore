@@ -4,3 +4,4 @@
 *.pkl
 *.csv
 *.pyc
+*.env

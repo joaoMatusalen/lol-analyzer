@@ -1,11 +1,14 @@
 #%%
+import time
+import os
+from dotenv import load_dotenv
 import requests
 import pandas as pd
-from flask import jsonify
-import time
 from datetime import timedelta, datetime
 
-token = "RGAPI-f44f9d2c-198b-49f9-af20-067adb1171a9"
+load_dotenv()
+
+token = os.getenv("RIOT_API_KEY")
 
 # ---------- Functions Suport ----------
 
@@ -182,40 +185,62 @@ def analyze_general_status (df):
     general_status = {}
 
     # Win Total/Rate
-    general_status['total_win'] = df['win'].sum() 
-    general_status['total_loss'] = (~df['win']).sum() 
-    general_status['win_rate'] = df['win'].mean() * 100 # Convert to percentage
 
-    # KDA (Kills + Assists / Deaths)
-    df['kda'] = (df['kills'] + df['assists']) / df['deaths'].replace(0, 1) # Avoid division by zero
-    general_status['average_kda'] = df['kda'].mean()
+    general_status["matchResult"] = {
 
-    # All Status and mean status
-    general_status['total_kills'] = df['kills'].sum()
-    general_status['average_kills'] = df['kills'].mean()
-    general_status['total_deaths'] = df['deaths'].sum()
-    general_status['average_deaths'] = df['deaths'].mean()
-    general_status['total_assists'] = df['assists'].sum()
-    general_status['average_assists'] = df['assists'].mean()
-    general_status['total_damage_dealt'] = df['totalDamageDealtToChampions'].sum()
-    general_status['average_damage_dealt'] = df['totalDamageDealtToChampions'].mean()
-    general_status['total_minions_killed'] = df['totalMinionsKilled'].sum()
-    general_status['average_minions_killed'] = df['totalMinionsKilled'].mean()
-    general_status['total_gold_earned'] = df['goldEarned'].sum()
-    general_status['average_gold_earned'] = df['goldEarned'].mean()
-    general_status['total_vision_score'] = df['visionScore'].sum()
-    general_status['average_vision_score'] = df['visionScore'].median()
+        'total_win' : int(df['win'].sum()), 
+        'total_loss' : int((~df['win']).sum()), 
+        'win_rate' : round(df['win'].mean() * 100, 2) # Convert to percentage
 
-    # Total double, triple, quadra and penta kills;
-    general_status['total_double_kills'] = df['doubleKills'].sum()
-    general_status['total_triple_kills'] = df['tripleKills'].sum()
-    general_status['total_quadra_kills'] = df['quadraKills'].sum()
-    general_status['total_penta_kills'] = df['pentaKills'].sum()
+    }
+
+    general_status["kda"] = {
+
+        "kda_ratio": round(
+            (df['kills'].sum() + df['assists'].sum()) /
+             max(df['deaths'].sum(), 1), 2),
+        "total_kills": int(df['kills'].sum()),
+        "total_deaths": int(df['deaths'].sum()),
+        "total_assists": int(df['assists'].sum()),
+        "avg_kills": round(df['kills'].mean(), 2),
+        "avg_deaths": round(df['deaths'].mean(), 2),
+        "avg_assists": round(df['assists'].mean(), 2),
+
+    }
+
+    general_status["economy"] = {
+        
+        "total_gold": int(df['goldEarned'].sum()),
+        "avg_gold": round(df['goldEarned'].mean(), 2)
+    }
+
+    # --------- Damage ---------
+    general_status['damage'] = {
+        "total": int(df['totalDamageDealtToChampions'].sum()),
+        "avg": round(df['totalDamageDealtToChampions'].mean(), 2)
+    }
+
+    # --------- Farm ---------
+    general_status['farm'] = {
+        "total": int(df['totalMinionsKilled'].sum()),
+        "avg": int(df['totalMinionsKilled'].mean())
+    }
+
+    # --------- Vision ---------
+    general_status['vision'] = {
+        "total": int(df['visionScore'].sum()),
+        "avg": int(df['visionScore'].mean())
+    }
+
+    # --------- Multikills ---------
+    general_status['multikills'] = {
+        "double": int(df['doubleKills'].sum()),
+        "triple": int(df['tripleKills'].sum()),
+        "quadra": int(df['quadraKills'].sum()),
+        "penta": int(df['pentaKills'].sum())
+    }
 
     return general_status
-
-
-
 
 def analyzeMatchData(df):
     """
@@ -313,8 +338,6 @@ def analyzeMatchData(df):
 
     return analysisResults
 
-#%%
-
 def get_player_analysis(name, tag, region):
     
     player_name = name
@@ -327,42 +350,13 @@ def get_player_analysis(name, tag, region):
 
     if allMatchesData:
         df_matches = convertToDataFrame(allMatchesData)
-        analysis_results = analyzeMatchData(df_matches)
+        analysis_results = analyze_general_status(df_matches)
         
-        return jsonify({
+        return {
             "player_info": {
                 "name": player_name,
                 "tag": player_tag,
                 "region": region,
             },
-            "analysis": analysis_results,
-            "matches": analysis_results["matches"][:10]
-        })
-    
-get_player_analysis("m1ll4dy", "br1", "Americas")
-
-#%%
-
-accountInfo("Americas", "m1ll4dy", "br1")
-
-
-#%%
-
-allMatchesData = collectMultipleMatchesData("Americas", "m1ll4dy", "br1")
-
-#%%
-
-df_matches = convertToDataFrame(allMatchesData)
-analysis_results = analyze_general_status(df_matches)
-
-analysis_results
-#%%
-
-({
-    "player_info": {
-        "name": "m1ll4dy",
-        "tag": "Br1",
-        "region": "Americas",
-    },
-    "analysis": analysis_results
-})
+            "geral_matchs": analysis_results,
+        }
