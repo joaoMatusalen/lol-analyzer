@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from riot_service import get_play_analysis
+from riot_service import get_player_analysis
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ def analyze():
     tag = data["playerTag"]
     region = data["region"]
 
-    result = get_play_analysis(player_name, tag, region)
+    result = get_player_analysis(player_name, tag, region)
 
     return jsonify(result)
 
