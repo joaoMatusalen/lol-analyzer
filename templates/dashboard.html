@@ -1,56 +1,184 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - League Analyzer</title>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <link rel="stylesheet" href="/static/dashboard.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoL Analyzer - Dashboard</title>
+    <link rel="stylesheet" href="../static/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../static/js/dashboard.js" defer></script>
 </head>
 <body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <h1>LoL Analyzer</h1>
+                </div>
+                <div class="player-info">
+                    <p id="player-name"></p>
+                </div>
+            </div>
+        </header>
+        
+        <nav>
+                <!-- Dashboard Section -->
+            <section class="dashboard">
+                <div class="dashboard-header">
+                    <h2>Dashboard</h2>
+                    <p class="subtitle">Análise detalhada sobre sua performance</p>
+                </div>
 
-    <header class="header">
-        <h1>📊 Player Dashboard</h1>
-        <p id="player-info"></p>
-    </header>
+                <!-- KPI Cards Grid -->
+                <div class="kpi-grid">
+                    <!-- Win Rate Card -->
+                    <div class="kpi-card">
+                        <div class="card-header">
+                            <i class="fas fa-trophy"></i>
+                            <h3>Taxa de Vitória</h3>
+                        </div>
+                        <div class="card-value">
+                            <p class="value" id="winrate">--</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="stat-label">Vitórias / Derrotas</span>
+                            <span class="stat-detail" id="win-loss">0 / 0</span>
+                        </div>
+                    </div>
 
-    <section class="kpi-container">
-        <div class="kpi">
-            <h3>Win Rate</h3>
-            <p id="winrate"></p>
-        </div>
+                    <!-- KDA Card -->
+                    <div class="kpi-card">
+                        <div class="card-header">
+                            <i class="fas fa-crosshairs"></i>
+                            <h3>KDA Médio</h3>
+                        </div>
+                        <div class="card-value">
+                            <p class="value" id="kda">--</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="stat-label">Kills / Deaths / Assists</span>
+                            <span class="stat-detail" id="kda-detail">0 / 0 / 0</span>
+                        </div>
+                    </div>
 
-        <div class="kpi">
-            <h3>KDA</h3>
-            <p id="kda"></p>
-        </div>
+                    <!-- Total Games Card -->
+                    <div class="kpi-card">
+                        <div class="card-header">
+                            <i class="fas fa-gamepad"></i>
+                            <h3>Total de Partidas</h3>
+                        </div>
+                        <div class="card-value">
+                            <p class="value" id="total-games">--</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="stat-label">Partidas Analisadas</span>
+                            <span class="stat-detail">Últimas 10</span>
+                        </div>
+                    </div>
 
-        <div class="kpi">
-            <h3>Total Games</h3>
-            <p id="total-games"></p>
-        </div>
+                    <!-- Average Gold Card -->
+                    <div class="kpi-card">
+                        <div class="card-header">
+                            <i class="fas fa-coins"></i>
+                            <h3>Ouro Médio</h3>
+                        </div>
+                        <div class="card-value">
+                            <p class="value" id="avg-gold">--</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="stat-label">Ouro por Partida</span>
+                            <span class="stat-detail" id="total-gold">0</span>
+                        </div>
+                    </div>
 
-        <div class="kpi">
-            <h3>Total Gold</h3>
-            <p id="gold"></p>
-        </div>
-    </section>
+                    <!-- Average Damage Card -->
+                    <div class="kpi-card">
+                        <div class="card-header">
+                            <i class="fas fa-fire"></i>
+                            <h3>Dano Médio</h3>
+                        </div>
+                        <div class="card-value">
+                            <p class="value" id="avg-damage">--</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="stat-label">Dano Total</span>
+                            <span class="stat-detail" id="total-damage">0</span>
+                        </div>
+                    </div>
 
-    <section class="charts">
-        <div class="chart-box">
-            <canvas id="winChart"></canvas>
-        </div>
+                    <!-- Average Farm Card -->
+                    <div class="kpi-card">
+                        <div class="card-header">
+                            <i class="fas fa-leaf"></i>
+                            <h3>Farm Médio</h3>
+                        </div>
+                        <div class="card-value">
+                            <p class="value" id="avg-farm">--</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="stat-label">Minions Abatidos</span>
+                            <span class="stat-detail" id="total-farm">0</span>
+                        </div>
+                    </div>
 
-        <div class="chart-box">
-            <canvas id="farmChart"></canvas>
-        </div>
+                    <!-- Vision Score Card -->
+                    <div class="kpi-card">
+                        <div class="card-header">
+                            <i class="fas fa-eye"></i>
+                            <h3>Vision Score</h3>
+                        </div>
+                        <div class="card-value">
+                            <p class="value" id="avg-vision">--</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="stat-label">Média por Partida</span>
+                            <span class="stat-detail" id="total-vision">0</span>
+                        </div>
+                    </div>
 
-        <div class="chart-box">
-            <canvas id="visionChart"></canvas>
-        </div>
-    </section>
+                    <!-- Multikills Card -->
+                    <div class="kpi-card">
+                        <div class="card-header">
+                            <i class="fas fa-star"></i>
+                            <h3>Multikills</h3>
+                        </div>
+                        <div class="card-value multikill-display">
+                            <div class="multikill-item">
+                                <span class="multikill-label">Double</span>
+                                <span class="multikill-count" id="double-kills">0</span>
+                            </div>
+                            <div class="multikill-item">
+                                <span class="multikill-label">Triples</span>
+                                <span class="multikill-count" id="triple-kills">0</span>
+                            </div>
+                            <div class="multikill-item">
+                                <span class="multikill-label">Quadras</span>
+                                <span class="multikill-count" id="quadra-kills">0</span>
+                            </div>
+                            <div class="multikill-item">
+                                <span class="multikill-label">Pentas</span>
+                                <span class="multikill-count" id="penta-kills">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </nav>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2026 LoL Analyzer - Desenvolvido por João Victor Magalhães Matusalen.</p>
+                <div class="social-links">
+                    <a class="social-link" target="_blank" href="https://github.com/joaoMatusalen"><i class="fab fa-github"></i></a>
+                    <a class="social-link" target="_blank" href="https://www.linkedin.com/in/joaomatusalen/"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </footer>
+    </div>
 
-    <script src="../static/js/dashboard.js"></script>
 </body>
 </html>

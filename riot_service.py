@@ -1,4 +1,3 @@
-#%%
 import time
 import os
 from dotenv import load_dotenv
@@ -8,9 +7,7 @@ from datetime import timedelta, datetime
 
 load_dotenv()
 
-token = os.getenv("RIOT_API_KEY")
-
-# ---------- Functions Suport ----------
+token = os.getenv("RIOT_API")
 
 def editLinkApi(link:str):
 
@@ -98,16 +95,13 @@ def collectMultipleMatchesData(region, nome, tag):
         print("We were unable to retrieve account information. Please check the name, tag and region.")
         return []
     puuid = account["puuid"]
-
-    print(puuid)
     
     allMatchIds = []
     start_index = 0
     count_per_request = 30 
 
     ##while True:
-    print(f"Collecting match IDs from the index {start_index}...")
-    matchIds_page = idMatchs(region, puuid, count=10, start=0)
+    matchIds_page = idMatchs(region, puuid, count=1, start=0)
     
     ##if start_index < 30:
     ##    break # No more match IDs to retrieve

@@ -1,3 +1,39 @@
+document.addEventListener("DOMContentLoaded", function () {
+
+    const hamburger = document.getElementById("hamburguerBtn");
+    const nav = document.getElementById("nav-header");
+    const overlay = document.getElementById("menuOverlay");
+
+    function openMenu() {
+        nav.classList.add("active");
+        overlay.classList.add("active");
+    }
+
+    function closeMenu() {
+        nav.classList.remove("active");
+        overlay.classList.remove("active");
+    }
+
+    hamburger.addEventListener("click", function (e) {
+        e.stopPropagation();
+
+        if (nav.classList.contains("active")) {
+            closeMenu();
+        } else {
+            openMenu();
+        }
+    });
+
+    /* ✅ Close when clicking outside */
+    overlay.addEventListener("click", closeMenu);
+
+    /* ✅ Close when clicking a link */
+    document.querySelectorAll(".nav-link").forEach(link => {
+        link.addEventListener("click", closeMenu);
+    });
+
+});
+
 document.getElementById("playerForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
