@@ -3,3 +3,5 @@
 *.parquet
 *.pkl
 *.csv
+*.pyc
+*.env

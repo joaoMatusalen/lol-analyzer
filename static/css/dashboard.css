@@ -1,0 +1,377 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* All things */
+
+nav section{
+    padding-top: 80px;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%);
+    color: #ffffff;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+
+.header {
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo i {
+    font-size: 2rem;
+    color: #C9AA71;
+}
+
+.logo h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.player-info {
+    text-align: right;
+}
+
+.player-info p {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+/* Dashboard Section */
+
+.dashboard {
+    padding: 60px 0;
+}
+
+.dashboard-header {
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.dashboard-header h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #C9AA71, #F4E4BC);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 400;
+}
+
+/* =========== Kpi Card =========== */
+
+/* Kpi card grid */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+/* Kpi card*/
+
+.kpi-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card:hover {
+    transform: translateY(-8px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(201, 170, 113, 0.5);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        0 0 30px rgba(201, 170, 113, 0.15);
+}
+
+/* Card Header with Icon */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.card-header i {
+    font-size: 1.5rem;
+    color: #C9AA71;
+    transition: all 0.3s ease;
+}
+
+.kpi-card:hover .card-header i {
+    transform: scale(1.1);
+    color: #F4E4BC;
+}
+
+.card-header h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Card Value Display */
+.card-value {
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #C9AA71;
+    line-height: 1;
+    margin-bottom: 4px;
+    transition: color 0.3s ease;
+}
+
+.kpi-card:hover .value {
+    color: #F4E4BC;
+}
+
+.unit {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+}
+
+/* Multikill Display - Special Layout */
+.multikill-display {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.multikill-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    background: rgba(201, 170, 113, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(201, 170, 113, 0.2);
+    transition: all 0.3s ease;
+}
+
+.kpi-card:hover .multikill-item {
+    background: rgba(201, 170, 113, 0.15);
+    border-color: rgba(201, 170, 113, 0.4);
+}
+
+.multikill-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+}
+
+.multikill-count {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #C9AA71;
+}
+
+/* Card Footer */
+.card-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 1;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 500;
+}
+
+.stat-detail {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+}
+
+/* ====================== */
+
+/* Footer */
+.footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    margin: 40px 0px 20px 0px;
+    padding-top: 20px;
+}
+
+.footer-content p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+}
+
+/* Social - Footer*/
+
+.social-link{
+    text-decoration: none;
+    color: white;
+    transition: 0.3s;
+}
+
+.social-link:hover {
+    background: linear-gradient(135deg, #C9AA71, #F4E4BC);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes countUp {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.kpi-card {
+    animation: slideUp 0.8s ease-out forwards;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 16px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .player-info {
+        text-align: center;
+    }
+
+    .dashboard {
+        padding: 40px 0;
+    }
+
+    .dashboard-header h2 {
+        font-size: 1.75rem;
+    }
+
+    .kpi-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .kpi-card {
+        padding: 20px;
+    }
+
+    .card-header h3 {
+        font-size: 0.8rem;
+    }
+
+    .value {
+        font-size: 2rem;
+    }
+
+    .card-footer {
+        gap: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 12px;
+    }
+
+    .logo h1 {
+        font-size: 1.3rem;
+    }
+
+    .dashboard-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .kpi-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .kpi-card {
+        padding: 16px;
+    }
+
+    .value {
+        font-size: 1.75rem;
+    }
+
+    .multikill-display {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
