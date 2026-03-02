@@ -1,5 +1,17 @@
 document.addEventListener("DOMContentLoaded", function () {
 
+    // Clicked icon
+    const icon = document.getElementById("logo")
+
+    icon.addEventListener("click", function(e){
+        e.stopPropagation();
+
+        window.location.href = "/";
+
+    })
+
+
+    // Hamburguer menu
     const hamburger = document.getElementById("hamburguerBtn");
     const nav = document.getElementById("nav-header");
     const overlay = document.getElementById("menuOverlay");
@@ -24,13 +36,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    /* ✅ Close when clicking outside */
     overlay.addEventListener("click", closeMenu);
 
-    /* ✅ Close when clicking a link */
+    window.addEventListener("scroll", closeMenu);
+
     document.querySelectorAll(".nav-link").forEach(link => {
         link.addEventListener("click", closeMenu);
     });
+
 
 });
 

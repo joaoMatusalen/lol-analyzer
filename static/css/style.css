@@ -39,6 +39,7 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
+    cursor: pointer;
 }
 
 .logo i {
@@ -77,6 +78,7 @@ body {
     background: none;
     border: none;
     cursor: pointer;
+    padding: 5px;
 }
 
 .header-hamburguer span{
@@ -403,11 +405,16 @@ body {
         z-index: 1002;
     }
 
+    .header-hamburguer:hover{
+        background-color: rgba(165, 163, 163, 0.5);
+        border-radius: 4px;
+    }
+
     .nav {
         position: fixed;
         top: 4px;
         right: 4px;
-        height: 20vh;
+        min-height: 20%;
         width: 98%;
         background: #0F2027;
         border-radius: 16px;

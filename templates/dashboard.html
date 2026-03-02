@@ -14,7 +14,7 @@
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <div class="logo">
+                <div class="logo" id="logo">
                     <i class="fas fa-chart-line"></i>
                     <h1>LoL Analyzer</h1>
                 </div>
@@ -25,13 +25,15 @@
         </header>
         
         <nav>
+            <section>
                 <!-- Dashboard Section -->
-            <section class="dashboard">
                 <div class="dashboard-header">
                     <h2>Dashboard</h2>
                     <p class="subtitle">Análise detalhada sobre sua performance</p>
                 </div>
+            </section>
 
+            <section>
                 <!-- KPI Cards Grid -->
                 <div class="kpi-grid">
                     <!-- Win Rate Card -->
@@ -74,8 +76,8 @@
                             <p class="value" id="total-games">--</p>
                         </div>
                         <div class="card-footer">
-                            <span class="stat-label">Partidas Analisadas</span>
-                            <span class="stat-detail">Últimas 10</span>
+                            <span class="stat-label">Total De Tempo Jogado</span>
+                            <span class="stat-detail" id="total-time-played">0</span>
                         </div>
                     </div>
 
@@ -89,7 +91,7 @@
                             <p class="value" id="avg-gold">--</p>
                         </div>
                         <div class="card-footer">
-                            <span class="stat-label">Ouro por Partida</span>
+                            <span class="stat-label">Ouro Total</span>
                             <span class="stat-detail" id="total-gold">0</span>
                         </div>
                     </div>
@@ -128,44 +130,71 @@
                     <div class="kpi-card">
                         <div class="card-header">
                             <i class="fas fa-eye"></i>
-                            <h3>Vision Score</h3>
+                            <h3>Média de visão</h3>
                         </div>
                         <div class="card-value">
                             <p class="value" id="avg-vision">--</p>
                         </div>
                         <div class="card-footer">
-                            <span class="stat-label">Média por Partida</span>
+                            <span class="stat-label">Visão Total</span>
                             <span class="stat-detail" id="total-vision">0</span>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Multikills Card -->
-                    <div class="kpi-card">
-                        <div class="card-header">
-                            <i class="fas fa-star"></i>
-                            <h3>Multikills</h3>
+            </section>
+            
+            <section>
+                <!-- Kda detailed Card -->
+                <div class="kpi-card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-skull-crossbones"></i>
+                        <h3>KDA detalhado</h3>
+                    </div>
+                    <div class="card-value kda-detail-display">
+                        <div class="kda-detail-item">
+                            <span class="kda-detail-label">Total de Kills</span>
+                            <span class="kda-detail-count" id="total-kills">0</span>
                         </div>
-                        <div class="card-value multikill-display">
-                            <div class="multikill-item">
-                                <span class="multikill-label">Double</span>
-                                <span class="multikill-count" id="double-kills">0</span>
-                            </div>
-                            <div class="multikill-item">
-                                <span class="multikill-label">Triples</span>
-                                <span class="multikill-count" id="triple-kills">0</span>
-                            </div>
-                            <div class="multikill-item">
-                                <span class="multikill-label">Quadras</span>
-                                <span class="multikill-count" id="quadra-kills">0</span>
-                            </div>
-                            <div class="multikill-item">
-                                <span class="multikill-label">Pentas</span>
-                                <span class="multikill-count" id="penta-kills">0</span>
-                            </div>
+                        <div class="kda-detail-item">
+                            <span class="kda-detail-label">Total de Mortes</span>
+                            <span class="kda-detail-count" id="total-deaths">0</span>
+                        </div>
+                        <div class="kda-detail-item">
+                            <span class="kda-detail-label">Total de Assistências</span>
+                            <span class="kda-detail-count" id="total-assists">0</span>
                         </div>
                     </div>
                 </div>
             </section>
+
+            <section>
+                <!-- Multikills Card -->
+                <div class="kpi-card">
+                    <div class="card-header">
+                        <i class="fas fa-star"></i>
+                        <h3>Multikills</h3>
+                    </div>
+                    <div class="card-value multikill-display">
+                        <div class="multikill-item">
+                            <span class="multikill-label">Double</span>
+                            <span class="multikill-count" id="double-kills">0</span>
+                        </div>
+                        <div class="multikill-item">
+                            <span class="multikill-label">Triples</span>
+                            <span class="multikill-count" id="triple-kills">0</span>
+                        </div>
+                        <div class="multikill-item">
+                            <span class="multikill-label">Quadras</span>
+                            <span class="multikill-count" id="quadra-kills">0</span>
+                        </div>
+                        <div class="multikill-item">
+                            <span class="multikill-label">Pentas</span>
+                            <span class="multikill-count" id="penta-kills">0</span>
+                        </div>
+                    </div>
+                </div>
+            </section> 
         </nav>
         
         <!-- Footer -->

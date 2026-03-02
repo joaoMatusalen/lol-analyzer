@@ -1,15 +1,20 @@
-/**
- * Dashboard JavaScript
- * Integrates with localStorage data from archive.js
- */
-
 document.addEventListener("DOMContentLoaded", () => {
+
+    // Clicked icon
+    const icon = document.getElementById("logo")
+
+    icon.addEventListener("click", function(e){
+        e.stopPropagation();
+
+        window.location.href = "/";
+
+    })
+
     // Get data from localStorage (set by archive.js)
     const data = JSON.parse(localStorage.getItem("analysisData"));
 
     if (!data) {
         console.log("Nenhum dado encontrado.");
-        alert("Nenhum dado encontrado.");
         window.location.href = "/";
         return;
     }
@@ -58,6 +63,12 @@ document.addEventListener("DOMContentLoaded", () => {
         totalGamesElement.innerText = totalGames;
     }
 
+    // Total Time Played
+    const totalTimePlayedElement = document.getElementById("total-time-played");
+    if (totalTimePlayedElement) {
+        totalTimePlayedElement.innerText = stats.matchResult.total_time_played;
+    }
+
     // Average Gold
     const avgGoldElement = document.getElementById("avg-gold");
     if (avgGoldElement) {
@@ -104,6 +115,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalVisionElement = document.getElementById("total-vision");
     if (totalVisionElement) {
         totalVisionElement.innerText = stats.vision.total.toLocaleString();
+    }
+
+    // Kda Detailed
+    const totalKillsElement = document.getElementById("total-kills");
+    if (totalKillsElement) {
+        totalKillsElement.innerText = stats.kda.total_kills;
+    }
+
+    const totalDeathsElements = document.getElementById("total-deaths");
+    if (totalDeathsElements) {
+        totalDeathsElements.innerText = stats.kda.total_deaths;
+    }
+
+    const totalAssistsElement = document.getElementById("total-assists");
+    if (totalAssistsElement) {
+        totalAssistsElement.innerText = stats.kda.total_assists;
     }
 
     // Multikills

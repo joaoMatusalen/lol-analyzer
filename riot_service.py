@@ -101,7 +101,7 @@ def collectMultipleMatchesData(region, nome, tag):
     count_per_request = 30 
 
     ##while True:
-    matchIds_page = idMatchs(region, puuid, count=1, start=0)
+    matchIds_page = idMatchs(region, puuid, count=60, start=0)
     
     ##if start_index < 30:
     ##    break # No more match IDs to retrieve
@@ -184,8 +184,8 @@ def analyze_general_status (df):
 
         'total_win' : int(df['win'].sum()), 
         'total_loss' : int((~df['win']).sum()), 
-        'win_rate' : round(df['win'].mean() * 100, 2) # Convert to percentage
-
+        'win_rate' : round(df['win'].mean() * 100, 2), # Convert to percentage
+        'total_time_played': str(timedelta(seconds=int(df['gameDuration'].sum())))
     }
 
     general_status["kda"] = {
