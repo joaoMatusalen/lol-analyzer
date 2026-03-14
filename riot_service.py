@@ -1,3 +1,4 @@
+#%%
 import time
 import os
 from dotenv import load_dotenv
@@ -7,350 +8,711 @@ from datetime import timedelta, datetime
 
 load_dotenv()
 
-token = os.getenv("RIOT_API")
+token = "RGAPI-b65554a7-3f42-421e-ae4c-25bc6611eb58"
 
-def editLinkApi(link:str):
+# ================================================================
+#  Variables suport
+# ================================================================
 
-    apiToken = token
-    return link, {"api_key": apiToken}
+# Mapa de routing global -> plataforma regional (necessário para summoner-v4)
+ROUTING_TO_PLATFORM = {
+    "americas": "br1",
+    "europe":   "euw1",
+    "asia":     "kr",
+    "sea":      "sg2",
+    "na":       "na1",
+    "la1":      "la1",
+    "la2":      "la2",
+    "oce":      "oc1",
+    "ru":       "ru",
+    "tr":       "tr1",
+    "jp":       "jp1",
+}
+
+    # list for suport code
+
+# All pings list
+pings_list = [
+    "allInPings",
+    "assistMePings",
+    "commandPings",
+    "dangerPings",
+    "enemyMissingPings",
+    "enemyVisionPings",
+    "holdPings",
+    "getBackPings",
+    "needVisionPings",
+    "onMyWayPings",
+    "pushPings",
+    "visionClearedPings"
+]
+
+# All lanes list
+lane_list = {
+    "TOP":     "Top",
+    "JUNGLE":  "Jungle",
+    "MIDDLE":  "Mid",
+    "BOTTOM":  "ADC",
+    "UTILITY": "Support",
+    "":        "Outros",
+    "NONE":    "Outros",
+}
+
+# ================================================================
+#  API HELPERS
+# ================================================================
+
+def editLinkApi(link: str):
+    return link, {"api_key": token}
 
 def tryRequestApi(url, params):
-
     max_retries = 5
-
     for i in range(max_retries):
-
         resp = requests.get(url, params=params)
-
         if resp.status_code == 429:
-            retry_after = int(resp.headers.get("New retry after:", 121)) # Padrão de 121 segundos
-            print(f"Request limit reached. New retry in {retry_after} seconds...")
+            retry_after = int(resp.headers.get("Retry-After", 121))
+            print(f"Rate limit atingido. Aguardando {retry_after}s...")
             time.sleep(retry_after)
         elif resp.status_code == 200:
             return resp.json()
         else:
-            print(f"Error {resp.status_code}: {resp.text}")
-            break
-
+            print(f"Erro {resp.status_code}: {resp.text}")
+            return {}  # FIX: retorna imediatamente em vez de continuar o loop
     return {}
 
 def convertToDataFrame(matchesData):
-    """
-    Converts a list of match data into a pandas DataFrame
-
-    Args:
-        matchesData (list): List of dictionaries containing match data
-
-    Returns:
-        pandas.DataFrame: DataFrame containing match data
-    """
+    """Converte lista de dicionários de partidas em DataFrame."""
     return pd.DataFrame(matchesData)
 
-# ---------- Functions Api links ----------
+# ================================================================
+#  API ENDPOINTS
+# ================================================================
 
-def accountInfo(region:str, nome:str, tag:str):
-
-    linkApi = "https://{region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{nome}/{tag}"
-    linkApi = linkApi.format(region=region, nome=nome, tag=tag)
-    url, params = editLinkApi(linkApi)
-
+def accountInfo(region: str, nome: str, tag: str):
+    url, params = editLinkApi(
+        f"https://{region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{nome}/{tag}"
+    )
     return tryRequestApi(url, params)
 
-def idMatchs(region:str, puuid:str, count=50, start=0):
-
-    linkApi = "https://{region}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?start={start}&count={count}"
-    linkApi = linkApi.format(region=region, puuid=puuid, count=count, start=start)
-    url, params = editLinkApi(linkApi)
-
+def idMatchs(region: str, puuid: str, count=5, start=0):
+    url, params = editLinkApi(
+        f"https://{region}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?start={start}&count={count}"
+    )
     return tryRequestApi(url, params)
 
-def infoMatchs(region, idMatch):
-
-    linkApi = "https://{region}.api.riotgames.com/lol/match/v5/matches/{idMatch}"
-    linkApi = linkApi.format(region=region, idMatch=idMatch)
-    url, params = editLinkApi(linkApi)
-
+def infoMatchs(region: str, idMatch: str):
+    url, params = editLinkApi(
+        f"https://{region}.api.riotgames.com/lol/match/v5/matches/{idMatch}"
+    )
     return tryRequestApi(url, params)
 
-# ---------- Collect Matches ----------
-
-def collectMultipleMatchesData(region, nome, tag):
+def summonerInfo(platform: str, puuid: str):
     """
-    Collects data from all matches for a specific player.
+    Busca dados do summoner (incluindo profileIconId) pelo puuid.
+    Usa a plataforma regional (ex: br1), não o routing global (ex: americas).
+    """
+    url, params = editLinkApi(
+        f"https://{platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}"
+    )
+    return tryRequestApi(url, params)
+
+def get_latest_patch():
+
+    try:
+        resp = requests.get("https://ddragon.leagueoflegends.com/api/versions.json", timeout=5)
+        return resp.json()[0]
+    except Exception:
+        return "15.8.1"  # fallback caso a requisição falhe
+
+# ================================================================
+#  CHAMPION CLASS LOOKUP (Data Dragon)
+# ================================================================
+
+def get_champion_classes(patch: str) -> dict:
+    """
+    Retorna um dict {championName: tag_primária} a partir do Data Dragon.
+    Mapeia tanto pelo nome de exibição quanto pela chave interna do DDragon
+    para cobrir edge cases (ex: 'Wukong' / 'MonkeyKing').
+    """
+    try:
+        resp = requests.get(
+            f"https://ddragon.leagueoflegends.com/cdn/{patch}/data/en_US/champion.json",
+            timeout=5
+        )
+        data = resp.json().get("data", {})
+    except Exception:
+        return {}
+
+    mapping = {}
+    for champ_key, info in data.items():
+        tags        = info.get("tags", [])
+        primary_tag = tags[0] if tags else "Unknown"
+        mapping[info["name"]] = primary_tag   # nome de exibição  (ex: "Wukong")
+        mapping[champ_key]    = primary_tag   # chave interna     (ex: "MonkeyKing")
+
+    return mapping
+
+# ================================================================
+#  COLETA DE PARTIDAS
+# ================================================================
+
+def collectMultipleMatchesData(region: str, nome: str, tag: str):
+    """
+    Coleta dados de partidas de um jogador específico.
 
     Args:
-
-        region (str): Player's region (e.g., "americas")
-        name (str): Player's name
-        tag (str): Player's tag
+        region (str): Região de routing do jogador (ex: "americas")
+        nome (str): Nome do jogador
+        tag (str): Tag do jogador
 
     Returns:
-
-        list: List of dictionaries containing match data
+        tuple: (puuid: str, matchesData: list)
     """
 
-    # Get account information
+    # Collect acount
     account = accountInfo(region, nome, tag)
-    if not account:
-        print("We were unable to retrieve account information. Please check the name, tag and region.")
-        return []
+
+    if not account or "puuid" not in account:
+        print("Não foi possível obter informações da conta. Verifique nome, tag e região.")
+        return None, []
+
+    # Declare Puuid
     puuid = account["puuid"]
-    
+
+    # Collect all Matchs id
     allMatchIds = []
     start_index = 0
-    count_per_request = 30 
+    count_per_request = 30
 
     ##while True:
     matchIds_page = idMatchs(region, puuid, count=60, start=0)
-    
-    ##if start_index < 30:
-    ##    break # No more match IDs to retrieve
-    
+
+    ##    if len(matchIds_page) < count_per_request:
+    ##        allMatchIds.extend(matchIds_page)
+    ##        break  # Sem mais partidas para buscar
+    ##    allMatchIds.extend(matchIds_page)
+    ##    start_index += count_per_request
+
     allMatchIds.extend(matchIds_page)
     start_index += count_per_request
-    
-    print(f"All IDs from the matchs collected : {len(allMatchIds)}")
 
-    # List for storing match data
+    print(f"Total de IDs coletados: {len(allMatchIds)}")
+
+    # Collect all Matchs data
     matchesData = []
-    
-    # Collect data from all matchs id
+
     for i, matchId in enumerate(allMatchIds):
-        print(f"Collecting match data {i+1}/{len(allMatchIds)}: {matchId}")
-        
-        # Get mactch information
+        print(matchId)
+        print(f"Coletando partida {i+1}/{len(allMatchIds)}: {matchId}")
+
+        # Collect Match info .json
         matchInfo = infoMatchs(region, matchId)
-        
-        if not matchInfo:
-            print(f"It was not possible to obtain information for the match {matchId}")
+
+        if not matchInfo or "info" not in matchInfo:
+            print(f"Não foi possível obter dados da partida {matchId}")
             continue
-        
-        # Find player position in the player list
+
+        # Check the player in match    
         participants = matchInfo["info"]["participants"]
-        playerPosition = None
-        
-        for j, participant in enumerate(participants):
-            if participant["puuid"] == puuid:
-                playerPosition = j
-                break
-        
-        if playerPosition is None:
-            print(f"Player not found in the match {matchId}")
+
+        playerData = next((p for p in participants if p["puuid"] == puuid), None)
+
+        if playerData is None:
+            print(f"Jogador não encontrado na partida {matchId}")
             continue
-        
-        # Extract data from the matchs
-        playerData = participants[playerPosition]
-        
+
+        gameMode = matchInfo["info"]["gameMode"]
+        isClassic = gameMode == "CLASSIC"
+
+        # Team objectives — somente no modo CLASSIC
+        # Em outros modos (CHERRY, ARAM, etc.) a estrutura de times é diferente
+        # e pode não conter os campos de objetivos padrão
+        if isClassic:
+            playerTeamId = playerData["teamId"]
+            teamData     = next((t for t in matchInfo["info"]["teams"] if t["teamId"] == playerTeamId), None)
+            if teamData is None:
+                print(f"Time do jogador não encontrado na partida {matchId}")
+                continue
+            baronKills    = teamData["objectives"]["baron"]["kills"]
+            dragonKills   = teamData["objectives"]["dragon"]["kills"]
+            hordeKills    = teamData["objectives"]["horde"]["kills"]
+            riftHeraldKills = teamData["objectives"]["riftHerald"]["kills"]
+            towerKills    = teamData["objectives"]["tower"]["kills"]
+            inhibitorKills = teamData["objectives"]["inhibitor"]["kills"]
+        else:
+            baronKills = dragonKills = hordeKills = 0
+            riftHeraldKills = towerKills = inhibitorKills = 0
+
         matchData = {
-            "matchId": matchId,
-            "gameCreation": matchInfo["info"]["gameCreation"],
-            "gameDuration": matchInfo["info"]["gameDuration"],
-            "gameMode": matchInfo["info"]["gameMode"],
-            "championName": playerData["championName"],
-            "championId": playerData["championId"],
-            "kills": playerData["kills"],
-            "deaths": playerData["deaths"],
-            "assists": playerData["assists"],
-            "lane": playerData["lane"],
-            "pentaKills": playerData["pentaKills"],
-            "win": playerData["win"],
+            # Match
+            "matchId":                     matchId,
+            "gameCreation":                matchInfo["info"]["gameCreation"],
+            "gameDuration":                matchInfo["info"]["gameDuration"],
+            "gameMode":                    gameMode,
+
+            # Champion
+            "championName":                playerData["championName"],
+            "championId":                  playerData["championId"],
+
+            # Statistics Player
+            "kills":                       playerData["kills"],
+            "deaths":                      playerData["deaths"],
+            "assists":                     playerData["assists"],
+            "lane":                        playerData["lane"],
+            "pentaKills":                  playerData["pentaKills"],
+            "win":                         playerData["win"],
             "totalDamageDealtToChampions": playerData["totalDamageDealtToChampions"],
-            "totalMinionsKilled": playerData["totalMinionsKilled"],
-            "goldEarned": playerData["goldEarned"],
-            "visionScore": playerData["visionScore"],
-            "wardsPlaced": playerData["wardsPlaced"],
-            "wardsKilled": playerData["wardsKilled"],
-            "firstBloodKill": playerData["firstBloodKill"],
-            "doubleKills": playerData["doubleKills"],
-            "tripleKills": playerData["tripleKills"],
-            "quadraKills": playerData["quadraKills"],
-            "teamPosition": playerData["teamPosition"],
-            "totalDamageTaken": playerData["totalDamageTaken"]
+            "totalMinionsKilled":          playerData["totalMinionsKilled"] if isClassic else 0,
+            "goldEarned":                  playerData["goldEarned"],
+            "visionScore":                 playerData["visionScore"] if isClassic else 0,
+            "wardsPlaced":                 playerData["wardsPlaced"],
+            "wardsKilled":                 playerData["wardsKilled"],
+            "firstBloodKill":              playerData["firstBloodKill"],
+            "doubleKills":                 playerData["doubleKills"],
+            "tripleKills":                 playerData["tripleKills"],
+            "quadraKills":                 playerData["quadraKills"],
+            "teamPosition":                playerData["teamPosition"],
+            "totalDamageTaken":            playerData["totalDamageTaken"],
+
+            # Team Objectives (0 fora do CLASSIC)
+            "baronKills":                  baronKills,
+            "dragonKills":                 dragonKills,
+            "hordeKills":                  hordeKills,
+            "riftHeraldKills":             riftHeraldKills,
+            "towerKills":                  towerKills,
+            "inhibitorKills":              inhibitorKills,
+
+            # Pings
+            "allInPings":                  playerData["allInPings"],
+            "assistMePings":               playerData["assistMePings"],
+            "commandPings":                playerData["commandPings"],
+            "dangerPings":                 playerData["dangerPings"],
+            "enemyMissingPings":           playerData["enemyMissingPings"],
+            "enemyVisionPings":            playerData["enemyVisionPings"],
+            "holdPings":                   playerData["holdPings"],
+            "getBackPings":                playerData["getBackPings"],
+            "needVisionPings":             playerData["needVisionPings"],
+            "onMyWayPings":                playerData["onMyWayPings"],
+            "pushPings":                   playerData["pushPings"],
+            "visionClearedPings":          playerData["visionClearedPings"],
         }
-        
+
         matchesData.append(matchData)
+
+    return puuid, matchesData
+
+# ================================================================
+#  ANÁLISES
+# ================================================================
+
+def analyze_general_results(df):
+
+    if df.empty:
+        return {}
+
+    general_results = {}
+
+    general_results["matchResult"] = {
+        "total_win":  int(df["win"].sum()),
+        "total_loss": int((~df["win"]).sum()),
+        "win_rate":   round(df["win"].mean() * 100, 2),
+    }
+
+    general_results["sizePlayed"] = {
+        "total_matchs":      int(df["win"].count()),
+        "total_time_played": str(timedelta(seconds=int(df["gameDuration"].sum())))
+    }
+
+    general_results["kda"] = {
+        "kda_ratio":    round((df["kills"].sum() + df["assists"].sum()) / max(df["deaths"].sum(), 1), 2),
+        "total_kills":  int(df["kills"].sum()),
+        "total_deaths": int(df["deaths"].sum()),
+        "total_assists":int(df["assists"].sum()),
+        "avg_kills":    round(df["kills"].mean(), 1),
+        "avg_deaths":   round(df["deaths"].mean(), 1),
+        "avg_assists":  round(df["assists"].mean(), 1),
+    }
+
+    general_results["economy"] = {
+        "total_gold": int(df["goldEarned"].sum()),
+        "avg_gold":   round(df["goldEarned"].mean()),
+    }
+
+    general_results["damage"] = {
+        "total": int(df["totalDamageDealtToChampions"].sum()),
+        "avg":   round(df["totalDamageDealtToChampions"].mean()),
+    }
+
+    general_results["farm"] = {
+        "total": int(df["totalMinionsKilled"].sum()),
+        "avg":   int(df["totalMinionsKilled"].mean()),
+    }
+
+    general_results["vision"] = {
+        "total": int(df["visionScore"].sum()),
+        "avg":   int(df["visionScore"].mean()),
+    }
+
+    general_results["multikills"] = {
+        "double": int(df["doubleKills"].sum()),
+        "triple": int(df["tripleKills"].sum()),
+        "quadra": int(df["quadraKills"].sum()),
+        "penta":  int(df["pentaKills"].sum()),
+    }
+
+    general_results["objectives"] = {
+        "total_dragons":         int(df["dragonKills"].sum()),
+        "avg_dragons":           round(df["dragonKills"].mean(), 1),
+        "total_barons":          int(df["baronKills"].sum()),
+        "avg_barons":            round(df["baronKills"].mean(), 1),
+        "total_towers":          int(df["towerKills"].sum()),
+        "avg_towers":            round(df["towerKills"].mean(), 1),
+        "total_rift_heralds":    int(df["riftHeraldKills"].sum()),
+        "avg_rift_heralds":      round(df["riftHeraldKills"].mean(), 1),
+        "total_horde_heralds":   int(df["hordeKills"].sum()),
+        "avg_horde_heralds":     round(df["hordeKills"].mean(), 1),
+        "total_inhibitor_kills": int(df["inhibitorKills"].sum()),
+        "avg_inhibitor_kills":   round(df["inhibitorKills"].mean(), 1),
+    }
     
-    return matchesData
-
-# ---------- Analyze Matches ----------
-
-def analyze_general_status (df):
-
-    general_status = {}
-
-    # Win Total/Rate
-
-    general_status["matchResult"] = {
-
-        'total_win' : int(df['win'].sum()), 
-        'total_loss' : int((~df['win']).sum()), 
-        'win_rate' : round(df['win'].mean() * 100, 2), # Convert to percentage
-        'total_time_played': str(timedelta(seconds=int(df['gameDuration'].sum())))
+    general_results["pings"] = {
+        "total":          int(df[pings_list].sum().sum()),
+        "avg_per_game":   round(df[pings_list].sum(axis=1).mean(), 1),
+        "all_in":         int(df["allInPings"].sum()),
+        "assist_me":      int(df["assistMePings"].sum()),
+        "command":        int(df["commandPings"].sum()),
+        "danger":         int(df["dangerPings"].sum()),
+        "enemy_missing":  int(df["enemyMissingPings"].sum()),
+        "enemy_vision":   int(df["enemyVisionPings"].sum()),
+        "hold":           int(df["holdPings"].sum()),
+        "get_back":       int(df["getBackPings"].sum()),
+        "need_vision":    int(df["needVisionPings"].sum()),
+        "on_my_way":      int(df["onMyWayPings"].sum()),
+        "push":           int(df["pushPings"].sum()),
+        "vision_cleared": int(df["visionClearedPings"].sum()),
     }
 
-    general_status["kda"] = {
+    return general_results
 
-        "kda_ratio": round(
-            (df['kills'].sum() + df['assists'].sum()) /
-             max(df['deaths'].sum(), 1), 2),
-        "total_kills": int(df['kills'].sum()),
-        "total_deaths": int(df['deaths'].sum()),
-        "total_assists": int(df['assists'].sum()),
-        "avg_kills": round(df['kills'].mean(), 2),
-        "avg_deaths": round(df['deaths'].mean(), 2),
-        "avg_assists": round(df['assists'].mean(), 2),
+def analyze_most_played_champion(df):
 
+    if df.empty:
+        return {}
+
+    most_played = df["championName"].value_counts().idxmax()
+    dfChamp = df[df["championName"] == most_played]
+
+    dfChamp
+
+    champ_results = {}
+
+    champ_results["champion"] = most_played
+
+    champ_results["matchResult"] = {
+        "total_win":  int(dfChamp["win"].sum()),
+        "total_loss": int((~dfChamp["win"]).sum()),
+        "win_rate":   round(dfChamp["win"].mean() * 100, 2),
     }
 
-    general_status["economy"] = {
-        
-        "total_gold": int(df['goldEarned'].sum()),
-        "avg_gold": round(df['goldEarned'].mean(), 2)
+    champ_results["sizePlayed"] = {
+        "total_matchs":      int(dfChamp["win"].count()),
+        "total_time_played": str(timedelta(seconds=int(dfChamp["gameDuration"].sum())))
     }
 
-    # --------- Damage ---------
-    general_status['damage'] = {
-        "total": int(df['totalDamageDealtToChampions'].sum()),
-        "avg": round(df['totalDamageDealtToChampions'].mean(), 2)
+    champ_results["kda"] = {
+        "kda_ratio":    round((dfChamp["kills"].sum() + dfChamp["assists"].sum()) / max(dfChamp["deaths"].sum(), 1), 2),
+        "total_kills":  int(dfChamp["kills"].sum()),
+        "total_deaths": int(dfChamp["deaths"].sum()),
+        "total_assists":int(dfChamp["assists"].sum()),
+        "avg_kills":    round(dfChamp["kills"].mean(), 1),
+        "avg_deaths":   round(dfChamp["deaths"].mean(), 1),
+        "avg_assists":  round(dfChamp["assists"].mean(), 1),
     }
 
-    # --------- Farm ---------
-    general_status['farm'] = {
-        "total": int(df['totalMinionsKilled'].sum()),
-        "avg": int(df['totalMinionsKilled'].mean())
+    champ_results["economy"] = {
+        "total_gold": int(dfChamp["goldEarned"].sum()),
+        "avg_gold":   round(dfChamp["goldEarned"].mean()),
     }
 
-    # --------- Vision ---------
-    general_status['vision'] = {
-        "total": int(df['visionScore'].sum()),
-        "avg": int(df['visionScore'].mean())
+    champ_results["damage"] = {
+        "total": int(dfChamp["totalDamageDealtToChampions"].sum()),
+        "avg":   round(dfChamp["totalDamageDealtToChampions"].mean()),
     }
 
-    # --------- Multikills ---------
-    general_status['multikills'] = {
-        "double": int(df['doubleKills'].sum()),
-        "triple": int(df['tripleKills'].sum()),
-        "quadra": int(df['quadraKills'].sum()),
-        "penta": int(df['pentaKills'].sum())
+    champ_results["farm"] = {
+        "total": int(dfChamp["totalMinionsKilled"].sum()),
+        "avg":   int(dfChamp["totalMinionsKilled"].mean()),
     }
 
-    return general_status
+    champ_results["vision"] = {
+        "total": int(dfChamp["visionScore"].sum()),
+        "avg":   int(dfChamp["visionScore"].mean()),
+    }
 
-def analyzeMatchData(df):
+    champ_results["multikills"] = {
+        "double": int(dfChamp["doubleKills"].sum()),
+        "triple": int(dfChamp["tripleKills"].sum()),
+        "quadra": int(dfChamp["quadraKills"].sum()),
+        "penta":  int(dfChamp["pentaKills"].sum()),
+    }
+
+    champ_results["objectives"] = {
+        "total_dragons":         int(dfChamp["dragonKills"].sum()),
+        "avg_dragons":           round(dfChamp["dragonKills"].mean(), 1),
+        "total_barons":          int(dfChamp["baronKills"].sum()),
+        "avg_barons":            round(dfChamp["baronKills"].mean(), 1),
+        "total_towers":          int(dfChamp["towerKills"].sum()),
+        "avg_towers":            round(dfChamp["towerKills"].mean(), 1),
+        "total_rift_heralds":    int(dfChamp["riftHeraldKills"].sum()),
+        "avg_rift_heralds":      round(dfChamp["riftHeraldKills"].mean(), 1),
+        "total_horde_heralds":   int(dfChamp["hordeKills"].sum()),
+        "avg_horde_heralds":     round(dfChamp["hordeKills"].mean(), 1),
+        "total_inhibitor_kills": int(dfChamp["inhibitorKills"].sum()),
+        "avg_inhibitor_kills":   round(dfChamp["inhibitorKills"].mean(), 1),
+    }
+    
+    champ_results["pings"] = {
+        "total":          int(dfChamp[pings_list].sum().sum()),
+        "avg_per_game":   round(dfChamp[pings_list].sum(axis=1).mean(), 1),
+        "all_in":         int(dfChamp["allInPings"].sum()),
+        "assist_me":      int(dfChamp["assistMePings"].sum()),
+        "command":        int(dfChamp["commandPings"].sum()),
+        "danger":         int(dfChamp["dangerPings"].sum()),
+        "enemy_missing":  int(dfChamp["enemyMissingPings"].sum()),
+        "enemy_vision":   int(dfChamp["enemyVisionPings"].sum()),
+        "hold":           int(dfChamp["holdPings"].sum()),
+        "get_back":       int(dfChamp["getBackPings"].sum()),
+        "need_vision":    int(dfChamp["needVisionPings"].sum()),
+        "on_my_way":      int(dfChamp["onMyWayPings"].sum()),
+        "push":           int(dfChamp["pushPings"].sum()),
+        "vision_cleared": int(dfChamp["visionClearedPings"].sum()),
+    }
+
+    return champ_results
+
+# ================================================================
+#  CHART DATA
+# ================================================================
+
+def analyze_monthly_evolution(df):
+
+    # Copy to don't affect the original df
+    df = df.copy()
+
+    # Time fix month
+    df["date"]  = pd.to_datetime(df["gameCreation"], unit="ms")
+    df["month"] = df["date"].dt.to_period("M")
+
+    dfMonth = df.groupby("month").agg(
+        avg_farm    = ("totalMinionsKilled",          "mean"),
+        avg_vision  = ("visionScore",                 "mean"),
+        avg_gold    = ("goldEarned",                  "mean"),
+        avg_deaths  = ("deaths",                      "mean"),
+        avg_kills   = ("kills",                       "mean"),
+        avg_assists = ("assists",                     "mean"),
+        avg_damage  = ("totalDamageDealtToChampions", "mean"),
+        win_rate    = ("win",                         "mean"),
+        games       = ("matchId",                     "count"),
+    ).reset_index().sort_values("month")
+
+    # "2025-10" → "10/2025"
+    labels = ["/".join(reversed(str(r).split("-"))) for r in dfMonth["month"]]
+
+    # Return the month avg
+    return {
+        "labels":      labels,
+        "avg_farm":    [round(v, 1) for v in dfMonth["avg_farm"]],
+        "avg_vision":  [round(v, 1) for v in dfMonth["avg_vision"]],
+        "avg_gold":    [round(v, 0) for v in dfMonth["avg_gold"]],
+        "avg_deaths":  [round(v, 1) for v in dfMonth["avg_deaths"]],
+        "avg_kills":   [round(v, 1) for v in dfMonth["avg_kills"]],
+        "avg_assists": [round(v, 1) for v in dfMonth["avg_assists"]],
+        "avg_damage":  [round(v, 0) for v in dfMonth["avg_damage"]],
+        "win_rate":    [round(v * 100, 1) for v in dfMonth["win_rate"]],
+        "games":       [int(v) for v in dfMonth["games"]],
+    }
+
+def analyze_lane_stats(df):
+    
+    # Copy to don't affect the original df
+    df = df.copy()
+
+    # Filter the lanes and add the correct name
+    df["lane_label"] = (df["teamPosition"].map(lane_list)
+                                          .fillna("Outros"))
+    
+    df = df[df["lane_label"] != "Outros"]
+
+    # Data order
+    lane_order = ["Top", "Jungle", "Mid", "Adc", "Support"]
+
+    grouped = df.groupby("lane_label").agg(
+        games = ("matchId", "count"),
+        wins  = ("win",     "sum"),
+    ).reindex(lane_order, fill_value=0).reset_index()
+
+    grouped["winrate"] = (grouped["wins"] / grouped["games"].replace(0, 1) * 100).round(1)
+
+    return {
+        "labels":  lane_order,
+        "games":   [int(v)   for v in grouped["games"]],
+        "winrate": [float(v) for v in grouped["winrate"]],
+    }
+
+def analyze_time_patterns(df):
+
+    # Copy to don't affect the original df
+    df = df.copy()
+
+    # Time fix
+    df["date"] = pd.to_datetime(df["gameCreation"], unit="ms")
+
+    day_order  = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+    day_map_en = {
+        "Monday": "Segunda", "Tuesday": "Terça", "Wednesday": "Quarta",
+        "Thursday": "Quinta", "Friday": "Sexta", "Saturday": "Sábado", "Sunday": "Domingo"
+    }
+
+    # Translate day name to pt-br
+    df["day_name"] = df["date"].dt.day_name().map(day_map_en)
+
+    df_day = df.groupby("day_name").agg(
+        games         = ("matchId",      "count"),
+        wins          = ("win",          "sum"),
+        total_seconds = ("gameDuration", "sum"),
+    ).reindex(day_order, fill_value=0)
+
+    df_day["winrate"]      = (df_day["wins"] / df_day["games"].replace(0, 1) * 100).round(1)
+    df_day["hours_played"] = (df_day["total_seconds"] / 3600).round(1)
+
+    df["hour_block"] = (df["date"].dt.hour // 2) * 2
+    hour_order = [f"{h:02d}h-{h+2:02d}h" for h in range(0, 24, 2)]
+
+    df_hour = df.groupby("hour_block").agg(
+        games = ("matchId", "count"),
+        wins  = ("win",     "sum"),
+    ).reindex(range(0, 24, 2), fill_value=0)
+
+    df_hour["winrate"] = (df_hour["wins"] / df_hour["games"].replace(0, 1) * 100).round(1)
+
+    return {
+        "weekday": {
+            "labels":       day_order,
+            "hours_played": [float(v) for v in df_day["hours_played"]],
+            "winrate":      [float(v) for v in df_day["winrate"]],
+            "games":        [int(v)   for v in df_day["games"]],
+        },
+        "hourly": {
+            "labels":  hour_order,
+            "winrate": [float(v) for v in df_hour["winrate"]],
+            "games":   [int(v)   for v in df_hour["games"]],
+        },
+    }
+
+def analyze_class_stats(df: pd.DataFrame) -> dict:
     """
-    Realiza análises nos dados das partidas coletadas.
-    
-    Args:
-        df (pandas.DataFrame): DataFrame com os dados das partidas.
-        
-    Returns:
-        dict: Dicionário contendo os resultados das análises.
+    Frequência e winrate por classe de campeão (tag primária).
+    Sempre retorna todas as 6 classes, mesmo que o jogador não tenha jogado com elas.
     """
-    analysisResults = {}
-    
-    # KDA (Kills + Assists / Deaths)
-    df['kda'] = (df['kills'] + df['assists']) / df['deaths'].replace(0, 1) # Avoid division by zero
-    analysisResults['average_kda'] = df['kda'].mean()
-    
-    # Win Total/Rate
-    analysisResults['total_win'] = df['win'].sum() 
-    analysisResults['total_loss'] = (~df['win']).sum() 
-    analysisResults['win_rate'] = df['win'].mean() * 100 # Convert to percentage
-    
-    # stats per game
-    analysisResults['total_kills'] = df['kills'].sum()
-    analysisResults['average_kills'] = df['kills'].mean()
-    analysisResults['total_deaths'] = df['deaths'].sum()
-    analysisResults['average_deaths'] = df['deaths'].mean()
-    analysisResults['total_assists'] = df['assists'].sum()
-    analysisResults['average_assists'] = df['assists'].mean()
-    analysisResults['total_damage_dealt'] = df['totalDamageDealtToChampions'].sum()
-    analysisResults['average_damage_dealt'] = df['totalDamageDealtToChampions'].mean()
-    analysisResults['total_minions_killed'] = df['totalMinionsKilled'].sum()
-    analysisResults['average_minions_killed'] = df['totalMinionsKilled'].mean()
-    analysisResults['total_gold_earned'] = df['goldEarned'].sum()
-    analysisResults['average_gold_earned'] = df['goldEarned'].mean()
-    analysisResults['total_vision_score'] = df['visionScore'].sum()
-    analysisResults['average_vision_score'] = df['visionScore'].mean()
-    
-    # Total stats
-    analysisResults['total_penta_kills'] = df['pentaKills'].sum()
-    analysisResults['total_double_kills'] = df['doubleKills'].sum()
-    analysisResults['total_triple_kills'] = df['tripleKills'].sum()
-    analysisResults['total_quadra_kills'] = df['quadraKills'].sum()
+    CLASS_ORDER = ["Fighter", "Tank", "Mage", "Assassin", "Marksman", "Support"]
 
-    # Most played champion, KDA and Win Rate
-    champion_stats = df.groupby("championName").agg(
-        games_played=("championName", "size"),
-        total_kills=("kills", "sum"),
-        total_deaths=("deaths", "sum"),
-        total_assists=("assists", "sum"),
-        total_wins=("win", "sum")
-    ).reset_index()
-    champion_stats["kda"] = (champion_stats["total_kills"] + champion_stats["total_assists"]) / champion_stats["total_deaths"].replace(0, 1)
-    champion_stats["win_rate"] = (champion_stats["total_wins"] / champion_stats["games_played"]) * 100
+    df = df.copy()
+    df = df[df["classTag"] != "Unknown"]
 
-    # Order for games_played in asc and catch the first champion
-    champion_stats = champion_stats.sort_values("games_played", ascending=False)
-    most_played_champion = champion_stats.iloc[0]
+    grouped = df.groupby("classTag").agg(
+        games = ("matchId", "count"),
+        wins  = ("win",     "sum"),
+    ).reset_index() if not df.empty else pd.DataFrame(columns=["classTag", "games", "wins"])
 
-    analysisResults["most_played_champion"] = most_played_champion["championName"]
-    analysisResults["most_played_champion_total_kills"] = most_played_champion["total_kills"]
-    analysisResults["most_played_champion_total_deaths"] = most_played_champion["total_deaths"]
-    analysisResults["most_played_champion_total_assists"] = most_played_champion["total_assists"]
-    analysisResults["most_played_champion"] = most_played_champion["championName"]
-    analysisResults["most_played_champion_kda"] = most_played_champion["kda"]
-    analysisResults["most_played_champion_win_rate"] = most_played_champion["win_rate"]
-    analysisResults["most_played_champion_qtd_matchs"] = most_played_champion["games_played"]
+    grouped["winrate"] = (grouped["wins"] / grouped["games"].replace(0, 1) * 100).round(1)
 
-    # Most played lane, KDA and Win Rate
-    lane_stats = df.groupby("lane").agg(
-        games_played=("lane", "size"),
-        total_kills=("kills", "sum"),
-        total_deaths=("deaths", "sum"),
-        total_assists=("assists", "sum"),
-        total_wins=("win", "sum")
-    ).reset_index()
-    lane_stats["kda"] = (lane_stats["total_kills"] + lane_stats["total_assists"]) / lane_stats["total_deaths"].replace(0, 1)
-    lane_stats["win_rate"] = (lane_stats["total_wins"] / lane_stats["games_played"]) * 100
-    most_played_lane = lane_stats.loc[lane_stats["games_played"].idxmax()]
-    
-    analysisResults["most_played_lane"] = most_played_lane["lane"]
-    analysisResults["most_played_lane_total_kills"] = most_played_lane["total_kills"]
-    analysisResults["most_played_lane_total_deaths"] = most_played_lane["total_deaths"]
-    analysisResults["most_played_lane_total_assists"] = most_played_lane["total_assists"]
-    analysisResults["most_played_lane_kda"] = most_played_lane["kda"]
-    analysisResults["most_played_lane_win_rate"] = most_played_lane["win_rate"]
+    # Garante todas as 6 classes na ordem fixa, com 0 para as ausentes
+    full = (
+        grouped.set_index("classTag")
+               .reindex(CLASS_ORDER, fill_value=0)
+               .reset_index()
+    )
 
-    # Most played game mode
-    most_played_game_mode = df["gameMode"].value_counts().idxmax()
-    analysisResults["most_played_game_mode"] = most_played_game_mode
+    return {
+        "labels":  CLASS_ORDER,
+        "games":   [int(v)   for v in full["games"]],
+        "winrate": [float(v) for v in full["winrate"]],
+    }
 
-    # Time matchs
-    analysisResults['total_time_played'] = str(timedelta(seconds=int(df['gameDuration'].sum())))
-    analysisResults['last_match_played'] = datetime.fromtimestamp(df["gameCreation"].iloc[-1]/1000).strftime("%d/%m/%Y")
 
-    return analysisResults
+def analyze_game_modes(df: pd.DataFrame) -> dict:
+    """Contagem e percentagem por modo de jogo. Sempre retorna os 7 modos fixos."""
 
-def get_player_analysis(name, tag, region):
-    
-    player_name = name
-    player_tag = tag
-    player_region = region
+    GAME_MODE_ORDER = ["CLASSIC", "ARAM", "CHERRY", "NEXUSBLITZ", "URF", "ONEFORALL", "TUTORIAL"]
 
-    print(f"Coletando dados de partidas para {player_name}#{player_tag}...")
+    total = max(len(df), 1)
 
-    allMatchesData = collectMultipleMatchesData(player_region, player_name, player_tag)
+    grouped = (
+        df.groupby("gameMode")
+          .size()
+          .reindex(GAME_MODE_ORDER, fill_value=0)
+          .reset_index(name="games")
+    )
+    grouped["percentage"] = (grouped["games"] / total * 100).round(1)
 
-    if allMatchesData:
-        df_matches = convertToDataFrame(allMatchesData)
-        analysis_results = analyze_general_status(df_matches)
-        
-        return {
-            "player_info": {
-                "name": player_name,
-                "tag": player_tag,
-                "region": region,
-            },
-            "geral_matchs": analysis_results,
-        }
+    return {
+        "labels":      GAME_MODE_ORDER,
+        "games":       [int(v)   for v in grouped["games"]],
+        "percentages": [float(v) for v in grouped["percentage"]],
+    }
+
+
+# ================================================================
+#  ENTRY POINT
+# ================================================================
+
+def get_player_analysis(name: str, tag: str, region: str):
+
+    print(f"Coletando dados para {name}#{tag}...")
+
+    # Patch buscado antes da coleta — necessário para get_champion_classes e URLs de imagem
+    patch = get_latest_patch()
+
+    puuid, allMatchesData = collectMultipleMatchesData(region, name, tag)
+
+    if not allMatchesData:
+        raise ValueError(f"Nenhuma partida encontrada para {name}#{tag} na região {region}.")
+
+    df_matches = convertToDataFrame(allMatchesData)
+
+    # Adiciona coluna classTag via Data Dragon
+    class_map = get_champion_classes(patch)
+    df_matches["classTag"] = df_matches["championName"].map(class_map).fillna("Unknown")
+
+    general_results  = analyze_general_results(df_matches)
+    champion_results = analyze_most_played_champion(df_matches)
+    champion_name    = champion_results["champion"]
+
+    chart_monthly    = analyze_monthly_evolution(df_matches)
+    chart_lanes      = analyze_lane_stats(df_matches)
+    chart_time       = analyze_time_patterns(df_matches)
+    chart_classes    = analyze_class_stats(df_matches)
+    chart_game_modes = analyze_game_modes(df_matches)
+
+    platform = ROUTING_TO_PLATFORM.get(region, "br1")
+    summoner = summonerInfo(platform, puuid)
+    profile_icon_id = summoner.get("profileIconId", 1) if summoner else 1
+
+    return {
+        "player_info": {
+            "name":   name,
+            "tag":    tag,
+            "region": region,
+        },
+        "geral_matchs":     general_results,
+        "champion_results": champion_results,
+        "champion_img":     f"https://ddragon.leagueoflegends.com/cdn/{patch}/img/champion/{champion_name}.png",
+        "player_icon_img":  f"https://ddragon.leagueoflegends.com/cdn/{patch}/img/profileicon/{profile_icon_id}.png",
+        "charts": {
+            "monthly":    chart_monthly,
+            "lanes":      chart_lanes,
+            "time":       chart_time,
+            "classes":    chart_classes,
+            "game_modes": chart_game_modes,
+        },
+    }

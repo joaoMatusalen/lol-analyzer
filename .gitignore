@@ -5,3 +5,5 @@
 *.csv
 *.pyc
 *.env
+CLAUDE.md
+*.png

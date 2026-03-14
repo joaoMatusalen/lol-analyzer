@@ -6,11 +6,13 @@
     <title>LoL Analyzer - Dashboard</title>
     <link rel="stylesheet" href="../static/css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="../static/js/dashboard.js" defer></script>
 </head>
 <body>
     <div class="container">
+
         <!-- Header -->
         <header class="header">
             <div class="header-content">
@@ -23,135 +25,129 @@
                 </div>
             </div>
         </header>
-        
-        <nav>
-            <section>
-                <!-- Dashboard Section -->
-                <div class="dashboard-header">
-                    <h2>Dashboard</h2>
-                    <p class="subtitle">Análise detalhada sobre sua performance</p>
+
+        <!-- ═══════════════════════════════════════════
+             SEÇÃO 1 — ESTATÍSTICAS GERAIS
+        ════════════════════════════════════════════ -->
+        <section class="dashboard-section" id="section-general">
+
+            <div class="section-label">
+                <span class="section-badge"><i class="fas fa-globe"></i> Estatísticas Gerais</span>
+                <div class="section-line"></div>
+            </div>
+            <div class="section-header">
+                <h2>Visão Geral</h2>
+                <p class="subtitle">Análise completa sobre sua performance recente</p>
+            </div>
+
+            <!-- Player Hero Card -->
+            <div class="champion-hero player-hero">
+                <div class="champion-hero-image-wrap">
+                    <div class="champion-img-glow"></div>
+                    <img class="champion-hero-img" id="player-icon-img" src="" alt="Player Icon">
+                    <div class="champion-img-border"></div>
                 </div>
-            </section>
-
-            <section>
-                <!-- KPI Cards Grid -->
-                <div class="kpi-grid">
-                    <!-- Win Rate Card -->
-                    <div class="kpi-card">
-                        <div class="card-header">
-                            <i class="fas fa-trophy"></i>
-                            <h3>Taxa de Vitória</h3>
-                        </div>
-                        <div class="card-value">
-                            <p class="value" id="winrate">--</p>
-                        </div>
-                        <div class="card-footer">
-                            <span class="stat-label">Vitórias / Derrotas</span>
-                            <span class="stat-detail" id="win-loss">0 / 0</span>
-                        </div>
+                <div class="champion-hero-info">
+                    <p class="champion-hero-label">Invocador</p>
+                    <h2 class="champion-hero-name" id="player-hero-name">--</h2>
+                    <div class="champion-hero-badges">
+                        <span class="hero-badge" id="player-winrate-badge">-- WR</span>
+                        <span class="hero-badge hero-badge-kda" id="player-kda-badge">-- KDA</span>
+                        <span class="hero-badge hero-badge-games" id="player-games-badge">-- Partidas</span>
                     </div>
+                </div>
+            </div>
 
-                    <!-- KDA Card -->
-                    <div class="kpi-card">
-                        <div class="card-header">
-                            <i class="fas fa-crosshairs"></i>
-                            <h3>KDA Médio</h3>
-                        </div>
-                        <div class="card-value">
-                            <p class="value" id="kda">--</p>
-                        </div>
-                        <div class="card-footer">
-                            <span class="stat-label">Kills / Deaths / Assists</span>
-                            <span class="stat-detail" id="kda-detail">0 / 0 / 0</span>
-                        </div>
-                    </div>
+            <!-- KPI Grid -->
+            <div class="kpi-grid">
 
-                    <!-- Total Games Card -->
-                    <div class="kpi-card">
-                        <div class="card-header">
-                            <i class="fas fa-gamepad"></i>
-                            <h3>Total de Partidas</h3>
-                        </div>
-                        <div class="card-value">
-                            <p class="value" id="total-games">--</p>
-                        </div>
-                        <div class="card-footer">
-                            <span class="stat-label">Total De Tempo Jogado</span>
-                            <span class="stat-detail" id="total-time-played">0</span>
-                        </div>
-                    </div>
-
-                    <!-- Average Gold Card -->
-                    <div class="kpi-card">
-                        <div class="card-header">
-                            <i class="fas fa-coins"></i>
-                            <h3>Ouro Médio</h3>
-                        </div>
-                        <div class="card-value">
-                            <p class="value" id="avg-gold">--</p>
-                        </div>
-                        <div class="card-footer">
-                            <span class="stat-label">Ouro Total</span>
-                            <span class="stat-detail" id="total-gold">0</span>
-                        </div>
-                    </div>
-
-                    <!-- Average Damage Card -->
-                    <div class="kpi-card">
-                        <div class="card-header">
-                            <i class="fas fa-fire"></i>
-                            <h3>Dano Médio</h3>
-                        </div>
-                        <div class="card-value">
-                            <p class="value" id="avg-damage">--</p>
-                        </div>
-                        <div class="card-footer">
-                            <span class="stat-label">Dano Total</span>
-                            <span class="stat-detail" id="total-damage">0</span>
-                        </div>
-                    </div>
-
-                    <!-- Average Farm Card -->
-                    <div class="kpi-card">
-                        <div class="card-header">
-                            <i class="fas fa-leaf"></i>
-                            <h3>Farm Médio</h3>
-                        </div>
-                        <div class="card-value">
-                            <p class="value" id="avg-farm">--</p>
-                        </div>
-                        <div class="card-footer">
-                            <span class="stat-label">Minions Abatidos</span>
-                            <span class="stat-detail" id="total-farm">0</span>
-                        </div>
-                    </div>
-
-                    <!-- Vision Score Card -->
-                    <div class="kpi-card">
-                        <div class="card-header">
-                            <i class="fas fa-eye"></i>
-                            <h3>Média de visão</h3>
-                        </div>
-                        <div class="card-value">
-                            <p class="value" id="avg-vision">--</p>
-                        </div>
-                        <div class="card-footer">
-                            <span class="stat-label">Visão Total</span>
-                            <span class="stat-detail" id="total-vision">0</span>
-                        </div>
+                <!-- Taxa de Vitória -->
+                <div class="kpi-card" style="--delay: 0.05s">
+                    <div class="card-header"><i class="fas fa-trophy"></i><h3>Taxa de Vitória</h3></div>
+                    <div class="card-value"><p class="value" id="winrate">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Vitórias / Derrotas</span>
+                        <span class="stat-detail" id="win-loss">0 / 0</span>
                     </div>
                 </div>
 
-            </section>
-            
-            <section>
-                <!-- Kda detailed Card -->
-                <div class="kpi-card">
-                    <div class="card-header">
-                        <i class="fa-solid fa-skull-crossbones"></i>
-                        <h3>KDA detalhado</h3>
+                <!-- KDA Médio -->
+                <div class="kpi-card" style="--delay: 0.10s">
+                    <div class="card-header"><i class="fas fa-crosshairs"></i><h3>KDA Médio</h3></div>
+                    <div class="card-value"><p class="value" id="kda">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Kills / Deaths / Assists</span>
+                        <span class="stat-detail" id="kda-detail">0 / 0 / 0</span>
                     </div>
-                    <div class="card-value kda-detail-display">
+                </div>
+
+                <!-- Total de Partidas -->
+                <div class="kpi-card" style="--delay: 0.15s">
+                    <div class="card-header"><i class="fas fa-gamepad"></i><h3>Total de Partidas</h3></div>
+                    <div class="card-value"><p class="value" id="total-games">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Tempo Total Jogado</span>
+                        <span class="stat-detail" id="total-time-played">0</span>
+                    </div>
+                </div>
+
+                <!-- Ouro Médio -->
+                <div class="kpi-card" style="--delay: 0.20s">
+                    <div class="card-header"><i class="fas fa-coins"></i><h3>Ouro Médio</h3></div>
+                    <div class="card-value"><p class="value" id="avg-gold">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Ouro Total</span>
+                        <span class="stat-detail" id="total-gold">0</span>
+                    </div>
+                </div>
+
+                <!-- Dano Médio -->
+                <div class="kpi-card" style="--delay: 0.25s">
+                    <div class="card-header"><i class="fas fa-fire"></i><h3>Dano Médio</h3></div>
+                    <div class="card-value"><p class="value" id="avg-damage">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Dano Total</span>
+                        <span class="stat-detail" id="total-damage">0</span>
+                    </div>
+                </div>
+
+                <!-- Farm Médio -->
+                <div class="kpi-card" style="--delay: 0.30s">
+                    <div class="card-header"><i class="fas fa-leaf"></i><h3>Farm Médio</h3></div>
+                    <div class="card-value"><p class="value" id="avg-farm">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Minions Abatidos</span>
+                        <span class="stat-detail" id="total-farm">0</span>
+                    </div>
+                </div>
+
+                <!-- Visão Média -->
+                <div class="kpi-card" style="--delay: 0.35s">
+                    <div class="card-header"><i class="fas fa-eye"></i><h3>Visão Média</h3></div>
+                    <div class="card-value"><p class="value" id="avg-vision">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Visão Total</span>
+                        <span class="stat-detail" id="total-vision">0</span>
+                    </div>
+                </div>
+
+                <!-- Pings -->
+                <div class="kpi-card" style="--delay: 0.40s">
+                    <div class="card-header"><i class="fas fa-comment-dots"></i><h3>Pings</h3></div>
+                    <div class="card-value"><p class="value" id="total-pings">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Média por Partida</span>
+                        <span class="stat-detail" id="avg-pings-per-game">0</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Wide cards row 1: KDA Detalhado + Multikills -->
+            <div class="wide-cards-row">
+                <div class="kpi-card wide-card" style="--delay: 0.45s">
+                    <div class="card-header"><i class="fa-solid fa-skull-crossbones"></i><h3>KDA Detalhado</h3></div>
+                    <div class="kda-detail-display">
                         <div class="kda-detail-item">
                             <span class="kda-detail-label">Total de Kills</span>
                             <span class="kda-detail-count" id="total-kills">0</span>
@@ -166,41 +162,456 @@
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <section>
-                <!-- Multikills Card -->
-                <div class="kpi-card">
-                    <div class="card-header">
-                        <i class="fas fa-star"></i>
-                        <h3>Multikills</h3>
-                    </div>
-                    <div class="card-value multikill-display">
+                <div class="kpi-card wide-card" style="--delay: 0.50s">
+                    <div class="card-header"><i class="fas fa-star"></i><h3>Multikills</h3></div>
+                    <div class="multikill-display">
                         <div class="multikill-item">
                             <span class="multikill-label">Double</span>
                             <span class="multikill-count" id="double-kills">0</span>
                         </div>
                         <div class="multikill-item">
-                            <span class="multikill-label">Triples</span>
+                            <span class="multikill-label">Triple</span>
                             <span class="multikill-count" id="triple-kills">0</span>
                         </div>
                         <div class="multikill-item">
-                            <span class="multikill-label">Quadras</span>
+                            <span class="multikill-label">Quadra</span>
                             <span class="multikill-count" id="quadra-kills">0</span>
                         </div>
-                        <div class="multikill-item">
-                            <span class="multikill-label">Pentas</span>
+                        <div class="multikill-item penta">
+                            <span class="multikill-label">Penta</span>
                             <span class="multikill-count" id="penta-kills">0</span>
                         </div>
                     </div>
                 </div>
-            </section> 
-        </nav>
-        
+            </div>
+
+            <!-- Wide cards row 2: Objetivos (full width) -->
+            <div class="wide-cards-row" style="grid-template-columns: 1fr;">
+                <div class="kpi-card wide-card" style="--delay: 0.55s">
+                    <div class="card-header"><i class="fas fa-dragon"></i><h3>Objetivos do Time</h3></div>
+                    <div class="objectives-display">
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/tower.png" alt="Torre">
+                            <span class="objective-label">Torres</span>
+                            <span class="objective-total" id="total-towers">0</span>
+                            <span class="objective-avg">(<span id="avg-towers">0</span>/jogo)</span>
+                        </div>
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/inhibitor.png" alt="Inibidor">
+                            <span class="objective-label">Inibidores</span>
+                            <span class="objective-total" id="total-inhibitors">0</span>
+                            <span class="objective-avg">(<span id="avg-inhibitors">0</span>/jogo)</span>
+                        </div>
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/baron.png" alt="Baron">
+                            <span class="objective-label">Baron</span>
+                            <span class="objective-total" id="total-barons">0</span>
+                            <span class="objective-avg">(<span id="avg-barons">0</span>/jogo)</span>
+                        </div>
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/herald.png" alt="Arauto">
+                            <span class="objective-label">Arauto</span>
+                            <span class="objective-total" id="total-rift-heralds">0</span>
+                            <span class="objective-avg">(<span id="avg-rift-heralds">0</span>/jogo)</span>
+                        </div>
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/grub.png" alt="Vastilarvas">
+                            <span class="objective-label">Vastilarvas</span>
+                            <span class="objective-total" id="total-horde">0</span>
+                            <span class="objective-avg">(<span id="avg-horde">0</span>/jogo)</span>
+                        </div>
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/dragon.png" alt="Dragão">
+                            <span class="objective-label">Dragões</span>
+                            <span class="objective-total" id="total-dragons">0</span>
+                            <span class="objective-avg">(<span id="avg-dragons">0</span>/jogo)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wide cards row 3: Pings Detalhados -->
+            <div class="wide-cards-row" style="grid-template-columns: 1fr;">
+                <div class="kpi-card wide-card" style="--delay: 0.60s">
+                    <div class="card-header"><i class="fas fa-comment-dots"></i><h3>Pings Detalhados</h3></div>
+                    <div class="pings-grid">
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/All_In_ping.png"><span class="ping-label">Atacar</span><span class="ping-count" id="ping-all-in">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Enemy_Missing_ping.png"><span class="ping-label">Inimigo Desaparecido</span><span class="ping-count" id="ping-enemy-missing">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Caution_ping.png"><span class="ping-label">Perigo</span><span class="ping-count" id="ping-danger">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Retreat_ping.png"><span class="ping-label">Cuidado</span><span class="ping-count" id="ping-get-back">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Enemy_Vision_ping.png"><span class="ping-label">Visão Inimiga</span><span class="ping-count" id="ping-enemy-vision">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Vision_Cleared_ping.png"><span class="ping-label">Visão Limpa</span><span class="ping-count" id="ping-vision-cleared">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Generic_ping.png"><span class="ping-label">Ping Genérico</span><span class="ping-count" id="ping-command">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/On_My_Way_ping.png"><span class="ping-label">A Caminho</span><span class="ping-count" id="ping-on-my-way">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Assist_Me_ping.png"><span class="ping-label">Assistência</span><span class="ping-count" id="ping-assist-me">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Push_ping.png"><span class="ping-label">Avançar</span><span class="ping-count" id="ping-push">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Need_Vision_ping.png"><span class="ping-label">Preciso de Visão</span><span class="ping-count" id="ping-need-vision">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Hold_ping.png"><span class="ping-label">Proteja</span><span class="ping-count" id="ping-hold">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ═══════════════════════════════════════════
+             SEÇÃO 2 — CAMPEÃO MAIS JOGADO
+        ════════════════════════════════════════════ -->
+        <section class="dashboard-section" id="section-champion">
+
+            <div class="section-label">
+                <span class="section-badge"><i class="fas fa-user-ninja"></i> Campeão Destaque</span>
+                <div class="section-line"></div>
+            </div>
+
+            <!-- Champion Hero Card -->
+            <div class="champion-hero">
+                <div class="champion-hero-image-wrap">
+                    <div class="champion-img-glow"></div>
+                    <img class="champion-hero-img" id="champion-img" src="" alt="Champion">
+                    <div class="champion-img-border"></div>
+                </div>
+                <div class="champion-hero-info">
+                    <p class="champion-hero-label">Campeão Mais Jogado</p>
+                    <h2 class="champion-hero-name" id="champion-name">--</h2>
+                    <div class="champion-hero-badges">
+                        <span class="hero-badge" id="champ-winrate-badge">-- WR</span>
+                        <span class="hero-badge hero-badge-kda" id="champ-kda-badge">-- KDA</span>
+                        <span class="hero-badge hero-badge-games" id="champ-games-badge">-- Partidas</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Champion KPI Grid -->
+            <div class="kpi-grid">
+                <div class="kpi-card kpi-card--champion" style="--delay: 0.05s">
+                    <div class="card-header"><i class="fas fa-trophy"></i><h3>Taxa de Vitória</h3></div>
+                    <div class="card-value"><p class="value" id="champ-winrate">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Vitórias / Derrotas</span>
+                        <span class="stat-detail" id="champ-win-loss">0 / 0</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-card--champion" style="--delay: 0.10s">
+                    <div class="card-header"><i class="fas fa-crosshairs"></i><h3>KDA Médio</h3></div>
+                    <div class="card-value"><p class="value" id="champ-kda">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Kills / Deaths / Assists</span>
+                        <span class="stat-detail" id="champ-kda-detail">0 / 0 / 0</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-card--champion" style="--delay: 0.15s">
+                    <div class="card-header"><i class="fas fa-gamepad"></i><h3>Total de Partidas</h3></div>
+                    <div class="card-value"><p class="value" id="champ-total-games">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Tempo Total Jogado</span>
+                        <span class="stat-detail" id="champ-total-time-played">0</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-card--champion" style="--delay: 0.20s">
+                    <div class="card-header"><i class="fas fa-coins"></i><h3>Ouro Médio</h3></div>
+                    <div class="card-value"><p class="value" id="champ-avg-gold">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Ouro Total</span>
+                        <span class="stat-detail" id="champ-total-gold">0</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-card--champion" style="--delay: 0.25s">
+                    <div class="card-header"><i class="fas fa-fire"></i><h3>Dano Médio</h3></div>
+                    <div class="card-value"><p class="value" id="champ-avg-damage">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Dano Total</span>
+                        <span class="stat-detail" id="champ-total-damage">0</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-card--champion" style="--delay: 0.30s">
+                    <div class="card-header"><i class="fas fa-leaf"></i><h3>Farm Médio</h3></div>
+                    <div class="card-value"><p class="value" id="champ-avg-farm">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Minions Abatidos</span>
+                        <span class="stat-detail" id="champ-total-farm">0</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-card--champion" style="--delay: 0.35s">
+                    <div class="card-header"><i class="fas fa-eye"></i><h3>Visão Média</h3></div>
+                    <div class="card-value"><p class="value" id="champ-avg-vision">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Visão Total</span>
+                        <span class="stat-detail" id="champ-total-vision">0</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-card--champion" style="--delay: 0.40s">
+                    <div class="card-header"><i class="fas fa-comment-dots"></i><h3>Pings</h3></div>
+                    <div class="card-value"><p class="value" id="champ-total-pings">--</p></div>
+                    <div class="card-footer">
+                        <span class="stat-label">Média por Partida</span>
+                        <span class="stat-detail" id="champ-avg-pings-per-game">0</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Champion Wide Cards -->
+            <div class="wide-cards-row">
+                <div class="kpi-card kpi-card--champion wide-card" style="--delay: 0.45s">
+                    <div class="card-header"><i class="fa-solid fa-skull-crossbones"></i><h3>KDA Detalhado</h3></div>
+                    <div class="kda-detail-display">
+                        <div class="kda-detail-item">
+                            <span class="kda-detail-label">Total de Kills</span>
+                            <span class="kda-detail-count" id="champ-total-kills">0</span>
+                        </div>
+                        <div class="kda-detail-item">
+                            <span class="kda-detail-label">Total de Mortes</span>
+                            <span class="kda-detail-count" id="champ-total-deaths">0</span>
+                        </div>
+                        <div class="kda-detail-item">
+                            <span class="kda-detail-label">Total de Assistências</span>
+                            <span class="kda-detail-count" id="champ-total-assists">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-card--champion wide-card" style="--delay: 0.50s">
+                    <div class="card-header"><i class="fas fa-star"></i><h3>Multikills</h3></div>
+                    <div class="multikill-display">
+                        <div class="multikill-item">
+                            <span class="multikill-label">Double</span>
+                            <span class="multikill-count" id="champ-double-kills">0</span>
+                        </div>
+                        <div class="multikill-item">
+                            <span class="multikill-label">Triple</span>
+                            <span class="multikill-count" id="champ-triple-kills">0</span>
+                        </div>
+                        <div class="multikill-item">
+                            <span class="multikill-label">Quadra</span>
+                            <span class="multikill-count" id="champ-quadra-kills">0</span>
+                        </div>
+                        <div class="multikill-item penta">
+                            <span class="multikill-label">Penta</span>
+                            <span class="multikill-count" id="champ-penta-kills">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Champion Wide Cards Row 2: Objetivos (full width) -->
+            <div class="wide-cards-row" style="grid-template-columns: 1fr;">
+                <div class="kpi-card kpi-card--champion wide-card" style="--delay: 0.55s">
+                    <div class="card-header"><i class="fas fa-dragon"></i><h3>Objetivos do Time</h3></div>
+                    <div class="objectives-display">
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/tower.png" alt="Torre">
+                            <span class="objective-label">Torres</span>
+                            <span class="objective-total" id="champ-total-towers">0</span>
+                            <span class="objective-avg">(<span id="champ-avg-towers">0</span>/jogo)</span>
+                        </div>
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/inhibitor.png" alt="Inibidor">
+                            <span class="objective-label">Inibidores</span>
+                            <span class="objective-total" id="champ-total-inhibitors">0</span>
+                            <span class="objective-avg">(<span id="champ-avg-inhibitors">0</span>/jogo)</span>
+                        </div>
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/baron.png" alt="Baron">
+                            <span class="objective-label">Baron</span>
+                            <span class="objective-total" id="champ-total-barons">0</span>
+                            <span class="objective-avg">(<span id="champ-avg-barons">0</span>/jogo)</span>
+                        </div>
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/herald.png" alt="Arauto">
+                            <span class="objective-label">Arauto</span>
+                            <span class="objective-total" id="champ-total-rift-heralds">0</span>
+                            <span class="objective-avg">(<span id="champ-avg-rift-heralds">0</span>/jogo)</span>
+                        </div>
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/grub.png" alt="Vastilarvas">
+                            <span class="objective-label">Vastilarvas</span>
+                            <span class="objective-total" id="champ-total-horde">0</span>
+                            <span class="objective-avg">(<span id="champ-avg-horde">0</span>/jogo)</span>
+                        </div>
+                        <div class="objective-item">
+                            <img class="objective-icon-img" src="../static/img/objectives/dragon.png" alt="Dragão">
+                            <span class="objective-label">Dragões</span>
+                            <span class="objective-total" id="champ-total-dragons">0</span>
+                            <span class="objective-avg">(<span id="champ-avg-dragons">0</span>/jogo)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Champion Wide Cards Row 3: Pings Detalhados -->
+            <div class="wide-cards-row" style="grid-template-columns: 1fr;">
+                <div class="kpi-card kpi-card--champion wide-card" style="--delay: 0.60s">
+                    <div class="card-header"><i class="fas fa-comment-dots"></i><h3>Pings Detalhados</h3></div>
+                    <div class="pings-grid">
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/All_In_ping.png"><span class="ping-label">Atacar</span><span class="ping-count" id="champ-ping-all-in">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Enemy_Missing_ping.png"><span class="ping-label">Inimigo Desaparecido</span><span class="ping-count" id="champ-ping-enemy-missing">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Caution_ping.png"><span class="ping-label">Perigo</span><span class="ping-count" id="champ-ping-danger">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Retreat_ping.png"><span class="ping-label">Cuidado</span><span class="ping-count" id="champ-ping-get-back">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Enemy_Vision_ping.png"><span class="ping-label">Visão Inimiga</span><span class="ping-count" id="champ-ping-enemy-vision">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Vision_Cleared_ping.png"><span class="ping-label">Visão Limpa</span><span class="ping-count" id="champ-ping-vision-cleared">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Generic_ping.png"><span class="ping-label">Ping Genérico</span><span class="ping-count" id="champ-ping-command">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/On_My_Way_ping.png"><span class="ping-label">A Caminho</span><span class="ping-count" id="champ-ping-on-my-way">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Assist_Me_ping.png"><span class="ping-label">Assistência</span><span class="ping-count" id="champ-ping-assist-me">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Push_ping.png"><span class="ping-label">Avançar</span><span class="ping-count" id="champ-ping-push">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Need_Vision_ping.png"><span class="ping-label">Preciso de Visão</span><span class="ping-count" id="champ-ping-need-vision">0</span></div>
+                        <div class="ping-item"><img class="ping-icon" src="../static/img/pings/Hold_ping.png"><span class="ping-label">Proteja</span><span class="ping-count" id="champ-ping-hold">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ═══════════════════════════════════════════
+             SEÇÃO 3 — EVOLUÇÃO MENSAL
+        ════════════════════════════════════════════ -->
+        <section class="dashboard-section" id="section-monthly">
+            <div class="section-label">
+                <span class="section-badge"><i class="fas fa-calendar-alt"></i> Evolução Mensal</span>
+                <div class="section-line"></div>
+            </div>
+            <div class="section-header">
+                <h2>Progresso ao Longo do Tempo</h2>
+                <p class="subtitle">Médias mensais das suas principais métricas</p>
+            </div>
+
+            <div class="chart-tabs" id="monthly-tabs">
+                <button class="chart-tab active" data-chart="monthly-kills">Kills</button>
+                <button class="chart-tab" data-chart="monthly-deaths">Mortes</button>
+                <button class="chart-tab" data-chart="monthly-assists">Assistências</button>
+                <button class="chart-tab" data-chart="monthly-farm">Farm</button>
+                <button class="chart-tab" data-chart="monthly-vision">Visão</button>
+                <button class="chart-tab" data-chart="monthly-gold">Gold</button>
+                <button class="chart-tab" data-chart="monthly-damage">Dano</button>
+                <button class="chart-tab" data-chart="monthly-winrate">Winrate</button>
+            </div>
+
+            <div class="chart-card">
+                <canvas id="monthly-kills"   class="chart-canvas active-chart"></canvas>
+                <canvas id="monthly-deaths"  class="chart-canvas"></canvas>
+                <canvas id="monthly-assists" class="chart-canvas"></canvas>
+                <canvas id="monthly-farm"    class="chart-canvas"></canvas>
+                <canvas id="monthly-vision"  class="chart-canvas"></canvas>
+                <canvas id="monthly-gold"    class="chart-canvas"></canvas>
+                <canvas id="monthly-damage"  class="chart-canvas"></canvas>
+                <canvas id="monthly-winrate" class="chart-canvas"></canvas>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════
+             SEÇÃO 4 — POSIÇÕES
+        ════════════════════════════════════════════ -->
+        <section class="dashboard-section" id="section-lanes">
+            <div class="section-label">
+                <span class="section-badge"><i class="fas fa-map"></i> Posições</span>
+                <div class="section-line"></div>
+            </div>
+            <div class="section-header">
+                <h2>Performance por Posição</h2>
+                <p class="subtitle">Frequência e winrate em cada lane</p>
+            </div>
+
+            <div class="charts-two-col">
+                <div class="chart-card chart-card--labeled">
+                    <p class="chart-label">Frequência por Posição</p>
+                    <div class="lane-chart-container" id="lane-frequency-chart"></div>
+                </div>
+                <div class="chart-card chart-card--labeled">
+                    <p class="chart-label">Winrate por Posição</p>
+                    <canvas id="lane-winrate" class="chart-canvas active-chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════
+             SEÇÃO 5 — PERÍODOS
+        ════════════════════════════════════════════ -->
+        <section class="dashboard-section" id="section-time">
+            <div class="section-label">
+                <span class="section-badge"><i class="fas fa-clock"></i> Períodos</span>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="section-header">
+                <h2>Quando Você Mais Joga?</h2>
+                <p class="subtitle">Volume de horas jogadas por dia da semana</p>
+            </div>
+            <div class="chart-card chart-card--labeled">
+                <p class="chart-label">Horas Jogadas por Dia da Semana</p>
+                <canvas id="time-weekday-hours" class="chart-canvas active-chart"></canvas>
+            </div>
+
+            <div class="section-header" style="margin-top: 48px;">
+                <h2>Quando Você Joga Melhor?</h2>
+                <p class="subtitle">Winrate por dia da semana e por hora do dia</p>
+            </div>
+            <div class="charts-two-col">
+                <div class="chart-card chart-card--labeled">
+                    <p class="chart-label">Winrate por Dia da Semana</p>
+                    <canvas id="time-weekday-wr" class="chart-canvas active-chart"></canvas>
+                </div>
+                <div class="chart-card chart-card--labeled">
+                    <p class="chart-label">Winrate por Hora do Dia</p>
+                    <canvas id="time-hourly-wr" class="chart-canvas active-chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════
+             SEÇÃO 6 — CLASSES DE CAMPEÃO
+        ════════════════════════════════════════════ -->
+        <section class="dashboard-section" id="section-classes">
+            <div class="section-label">
+                <span class="section-badge"><i class="fas fa-chess-knight"></i> Classes</span>
+                <div class="section-line"></div>
+            </div>
+            <div class="section-header">
+                <h2>Classes de Campeão</h2>
+                <p class="subtitle">Frequência e winrate por tipo de campeão jogado</p>
+            </div>
+
+            <div class="charts-two-col">
+                <div class="chart-card chart-card--labeled">
+                    <p class="chart-label">Frequência por Classe</p>
+                    <div class="lane-chart-container" id="class-frequency-chart"></div>
+                </div>
+                <div class="chart-card chart-card--labeled">
+                    <p class="chart-label">Winrate por Classe</p>
+                    <canvas id="class-winrate" class="chart-canvas active-chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════
+             SEÇÃO 7 — MODOS DE JOGO
+        ════════════════════════════════════════════ -->
+        <section class="dashboard-section" id="section-game-modes">
+            <div class="section-label">
+                <span class="section-badge"><i class="fas fa-dice"></i> Modos de Jogo</span>
+                <div class="section-line"></div>
+            </div>
+            <div class="section-header">
+                <h2>Modos de Jogo</h2>
+                <p class="subtitle">Distribuição das partidas por modo de jogo</p>
+            </div>
+
+            <div class="chart-card chart-card--labeled">
+                <p class="chart-label">Partidas por Modo de Jogo</p>
+                <canvas id="game-modes-chart" class="chart-canvas active-chart"></canvas>
+            </div>
+        </section>
+
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
-                <p>&copy; 2026 LoL Analyzer - Desenvolvido por João Victor Magalhães Matusalen.</p>
+                <p>&copy; 2026 LoL Analyzer — Desenvolvido por João Victor Magalhães Matusalen.</p>
                 <div class="social-links">
                     <a class="social-link" target="_blank" href="https://github.com/joaoMatusalen"><i class="fab fa-github"></i></a>
                     <a class="social-link" target="_blank" href="https://www.linkedin.com/in/joaomatusalen/"><i class="fab fa-linkedin"></i></a>
@@ -208,6 +619,5 @@
             </div>
         </footer>
     </div>
-
 </body>
 </html>

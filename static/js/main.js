@@ -1,15 +1,12 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
 
     // Clicked icon
     const icon = document.getElementById("logo")
 
     icon.addEventListener("click", function(e){
         e.stopPropagation();
-
         window.location.href = "/";
-
     })
-
 
     // Hamburguer menu
     const hamburger = document.getElementById("hamburguerBtn");
@@ -44,12 +41,12 @@ document.addEventListener("DOMContentLoaded", function () {
         link.addEventListener("click", closeMenu);
     });
 
-
 });
 
-document.getElementById("playerForm").addEventListener("submit", async function(e) {
+document.getElementById("playerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Collect data form
     const playerName = document.getElementById("playerName").value;
     const playerTag = document.getElementById("playerTag").value;
     const region = document.getElementById("region").value;
@@ -67,8 +64,6 @@ document.getElementById("playerForm").addEventListener("submit", async function(
             region
         })
     });
-
-    console.log(response)
 
     const data = await response.json();
 
