@@ -8,7 +8,7 @@ from datetime import timedelta, datetime
 
 load_dotenv()
 
-token = "RGAPI-b65554a7-3f42-421e-ae4c-25bc6611eb58"
+token = ""
 
 # ================================================================
 #  Variables suport
