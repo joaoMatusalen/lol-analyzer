@@ -8,7 +8,11 @@ from datetime import timedelta, datetime
 
 load_dotenv()
 
+<<<<<<< HEAD
 token = ""
+=======
+token = os.getenv("RIOT_API")
+>>>>>>> 09f562b (fix: remove the trash in to code, update analyze_most_played_champion)
 
 # ================================================================
 #  Variables suport
@@ -185,7 +189,7 @@ def collectMultipleMatchesData(region: str, nome: str, tag: str):
     count_per_request = 30
 
     ##while True:
-    matchIds_page = idMatchs(region, puuid, count=60, start=0)
+    matchIds_page = idMatchs(region, puuid, count=5, start=0)
 
     ##    if len(matchIds_page) < count_per_request:
     ##        allMatchIds.extend(matchIds_page)
@@ -456,38 +460,6 @@ def analyze_most_played_champion(df):
         "penta":  int(dfChamp["pentaKills"].sum()),
     }
 
-    champ_results["objectives"] = {
-        "total_dragons":         int(dfChamp["dragonKills"].sum()),
-        "avg_dragons":           round(dfChamp["dragonKills"].mean(), 1),
-        "total_barons":          int(dfChamp["baronKills"].sum()),
-        "avg_barons":            round(dfChamp["baronKills"].mean(), 1),
-        "total_towers":          int(dfChamp["towerKills"].sum()),
-        "avg_towers":            round(dfChamp["towerKills"].mean(), 1),
-        "total_rift_heralds":    int(dfChamp["riftHeraldKills"].sum()),
-        "avg_rift_heralds":      round(dfChamp["riftHeraldKills"].mean(), 1),
-        "total_horde_heralds":   int(dfChamp["hordeKills"].sum()),
-        "avg_horde_heralds":     round(dfChamp["hordeKills"].mean(), 1),
-        "total_inhibitor_kills": int(dfChamp["inhibitorKills"].sum()),
-        "avg_inhibitor_kills":   round(dfChamp["inhibitorKills"].mean(), 1),
-    }
-    
-    champ_results["pings"] = {
-        "total":          int(dfChamp[pings_list].sum().sum()),
-        "avg_per_game":   round(dfChamp[pings_list].sum(axis=1).mean(), 1),
-        "all_in":         int(dfChamp["allInPings"].sum()),
-        "assist_me":      int(dfChamp["assistMePings"].sum()),
-        "command":        int(dfChamp["commandPings"].sum()),
-        "danger":         int(dfChamp["dangerPings"].sum()),
-        "enemy_missing":  int(dfChamp["enemyMissingPings"].sum()),
-        "enemy_vision":   int(dfChamp["enemyVisionPings"].sum()),
-        "hold":           int(dfChamp["holdPings"].sum()),
-        "get_back":       int(dfChamp["getBackPings"].sum()),
-        "need_vision":    int(dfChamp["needVisionPings"].sum()),
-        "on_my_way":      int(dfChamp["onMyWayPings"].sum()),
-        "push":           int(dfChamp["pushPings"].sum()),
-        "vision_cleared": int(dfChamp["visionClearedPings"].sum()),
-    }
-
     return champ_results
 
 # ================================================================
@@ -585,13 +557,13 @@ def analyze_time_patterns(df):
     df_day["winrate"]      = (df_day["wins"] / df_day["games"].replace(0, 1) * 100).round(1)
     df_day["hours_played"] = (df_day["total_seconds"] / 3600).round(1)
 
-    df["hour_block"] = (df["date"].dt.hour // 2) * 2
-    hour_order = [f"{h:02d}h-{h+2:02d}h" for h in range(0, 24, 2)]
+    df["hour_block"] = df["date"].dt.hour
+    hour_order = [f"{h:02d}h" for h in range(0, 24)]
 
     df_hour = df.groupby("hour_block").agg(
         games = ("matchId", "count"),
         wins  = ("win",     "sum"),
-    ).reindex(range(0, 24, 2), fill_value=0)
+    ).reindex(range(0, 24), fill_value=0)
 
     df_hour["winrate"] = (df_hour["wins"] / df_hour["games"].replace(0, 1) * 100).round(1)
 
@@ -641,24 +613,26 @@ def analyze_class_stats(df: pd.DataFrame) -> dict:
 
 
 def analyze_game_modes(df: pd.DataFrame) -> dict:
-    """Contagem e percentagem por modo de jogo. Sempre retorna os 7 modos fixos."""
+    """Contagem, percentagem e winrate por modo de jogo. Sempre retorna os 7 modos fixos."""
 
     GAME_MODE_ORDER = ["CLASSIC", "ARAM", "CHERRY", "NEXUSBLITZ", "URF", "ONEFORALL", "TUTORIAL"]
 
     total = max(len(df), 1)
 
-    grouped = (
-        df.groupby("gameMode")
-          .size()
-          .reindex(GAME_MODE_ORDER, fill_value=0)
-          .reset_index(name="games")
-    )
+    grouped = df.groupby("gameMode").agg(
+        games = ("matchId", "count"),
+        wins  = ("win",     "sum"),
+    ).reindex(GAME_MODE_ORDER, fill_value=0).reset_index()
+
     grouped["percentage"] = (grouped["games"] / total * 100).round(1)
+    grouped["winrate"]    = (grouped["wins"] / grouped["games"].replace(0, 1) * 100).round(1)
+    grouped.loc[grouped["games"] == 0, "winrate"] = 0.0
 
     return {
         "labels":      GAME_MODE_ORDER,
         "games":       [int(v)   for v in grouped["games"]],
         "percentages": [float(v) for v in grouped["percentage"]],
+        "winrate":     [float(v) for v in grouped["winrate"]],
     }
 
 
