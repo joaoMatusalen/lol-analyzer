@@ -611,7 +611,6 @@ def analyze_class_stats(df: pd.DataFrame) -> dict:
         "winrate": [float(v) for v in full["winrate"]],
     }
 
-
 def analyze_game_modes(df: pd.DataFrame) -> dict:
     """Contagem, percentagem e winrate por modo de jogo. Sempre retorna os 7 modos fixos."""
 
@@ -636,7 +635,7 @@ def analyze_game_modes(df: pd.DataFrame) -> dict:
     }
 
 
-# ================================================================
+# ==============================================================
 #  ENTRY POINT
 # ================================================================
 

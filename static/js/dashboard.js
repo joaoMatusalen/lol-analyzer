@@ -29,6 +29,48 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    // Banner — nome do jogador
+    const bannerName = document.getElementById("banner-player-name");
+    if (bannerName && data.player_info) {
+        bannerName.textContent = `${data.player_info.name}#${data.player_info.tag}`;
+    }
+
+    // Header search form — submete para o backend igual ao index
+    const headerForm = document.getElementById("headerSearchForm");
+    if (headerForm) {
+        headerForm.addEventListener("submit", async e => {
+            e.preventDefault();
+            const name   = document.getElementById("header-playerName").value.trim();
+            const tag    = document.getElementById("header-playerTag").value.trim();
+            const region = document.getElementById("header-region").value;
+            if (!name || !tag || !region) return;
+
+            const btn = headerForm.querySelector(".header-search-btn");
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const resp = await fetch("/analyze", {
+                    method:  "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body:    JSON.stringify({ name, tag, region }),
+                });
+                const result = await resp.json();
+                if (result.error) {
+                    alert(`Erro: ${result.error}`);
+                } else {
+                    localStorage.setItem("analysisData", JSON.stringify(result));
+                    window.location.reload();
+                }
+            } catch (err) {
+                alert("Erro ao conectar com o servidor.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-search"></i>';
+            }
+        });
+    }
+
     bindGeneral(data);
     bindChampion(data);
 
@@ -408,7 +450,7 @@ function buildClassFrequencyChart(containerId, labelsEN, values) {
 
     container.innerHTML = labelsEN.map((key, i) => {
         const meta   = CLASS_META[key] || { label: key, icon: "" };
-        const barPct = Math.max(Math.round((values[i] / max) * 100), 2);
+        const barPct = values[i] === 0 ? 0 : Math.max(Math.round((values[i] / max) * 100), 2);
         const color  = GOLD_COLOR;
 
         return `
@@ -453,9 +495,14 @@ function makeHorizontalBarChart(id, labels, dataset) {
     }));
 }
 
-function makeWinrateBarChart(id, labels, dataset, showLegend = false) {
+function makeWinrateBarChart(id, labels, dataset, showLegend = false, compactTicks = false) {
     const canvas = document.getElementById(id);
     if (!canvas) return;
+    const xTicks = compactTicks
+        ? { color: TICK_COLOR, font: { ...BASE_FONT, size: 10 }, maxRotation: 60, minRotation: 45 }
+        : { color: TICK_COLOR, font: BASE_FONT, maxRotation: 45 };
+    const scales = winrateYScale();
+    scales.x.ticks = xTicks;
     registerChart(id, new Chart(canvas, {
         type: "bar",
         data: { labels, datasets: [dataset] },
@@ -466,11 +513,16 @@ function makeWinrateBarChart(id, labels, dataset, showLegend = false) {
             plugins: {
                 legend: {
                     display: showLegend,
-                    labels: { color: "rgba(255,255,255,0.6)", font: BASE_FONT },
+                    labels: {
+                        color:     "rgba(255,255,255,0.7)",
+                        font:      { ...BASE_FONT, size: 13 },
+                        boxWidth:  14,
+                        padding:   12,
+                    },
                 },
                 tooltip: { ...DEFAULT_TOOLTIP, callbacks: { label: ctx => ` ${ctx.parsed.y}%` } },
             },
-            scales: winrateYScale(),
+            scales,
         },
     }));
 }
@@ -534,7 +586,7 @@ function buildLaneFrequencyChart(containerId, labels, values) {
 
     container.innerHTML = labels.map((lane, i) => {
         const meta   = LANE_META.find(m => m.key === lane) || { color: GOLD_COLOR, icon: "" };
-        const barPct = Math.max(Math.round((values[i] / max) * 100), 2);
+        const barPct = values[i] === 0 ? 0 : Math.max(Math.round((values[i] / max) * 100), 2);
 
         return `
         <div class="lane-bar-col">
@@ -557,15 +609,13 @@ function buildCharts(charts) {
     const l = charts.lanes;
     const t = charts.time;
     const c = charts.classes    || { labels: [], games: [], winrate: [] };
-    const g = charts.game_modes || { labels: [], games: [], percentages: [] };
+    const g = charts.game_modes || { labels: [], games: [], percentages: [], winrate: [] };
 
     // ── 1. EVOLUÇÃO MENSAL ───────────────────────────────────────
     setupTabs("monthly-tabs", {
         "monthly-kills":   () => makeLineChart("monthly-kills",   m.labels, lineDataset("Kills",        m.avg_kills,  GOLD_COLOR,   GOLD_FILL),   "Média de Kills"),
         "monthly-deaths":  () => makeLineChart("monthly-deaths",  m.labels, lineDataset("Mortes",       m.avg_deaths, RED_COLOR,    RED_FILL),    "Média de Mortes"),
         "monthly-assists": () => makeLineChart("monthly-assists",  m.labels, lineDataset("Assistências", m.avg_assists,BLUE_COLOR,   BLUE_FILL),   "Média de Assistências"),
-        "monthly-farm":    () => makeLineChart("monthly-farm",    m.labels, lineDataset("Farm",         m.avg_farm,   GREEN_COLOR,  GREEN_FILL),  "Média de Farm"),
-        "monthly-vision":  () => makeLineChart("monthly-vision",  m.labels, lineDataset("Visão",        m.avg_vision, BLUE_COLOR,   BLUE_FILL),   "Visão Score"),
         "monthly-gold":    () => makeLineChart("monthly-gold",    m.labels, lineDataset("Gold",         m.avg_gold,   PURPLE_COLOR, PURPLE_FILL), "Gold Médio"),
         "monthly-damage":  () => makeLineChart("monthly-damage",  m.labels, lineDataset("Dano",         m.avg_damage, RED_COLOR,    RED_FILL),    "Dano Médio"),
         "monthly-winrate": () => makeWinrateBarChart("monthly-winrate", m.labels, barDataset("Winrate", m.win_rate, GREEN_COLOR, GREEN_FILL), true),
@@ -578,7 +628,7 @@ function buildCharts(charts) {
     // ── 3. PERÍODOS ──────────────────────────────────────────────
     makeBarChart("time-weekday-hours", t.weekday.labels, barDataset("Horas", t.weekday.hours_played, GOLD_COLOR, GOLD_FILL), defaultScales("Horas Jogadas"));
     makeWinrateBarChart("time-weekday-wr", t.weekday.labels, barDataset("Winrate %", t.weekday.winrate, GREEN_COLOR, GREEN_FILL));
-    makeWinrateBarChart("time-hourly-wr",  t.hourly.labels,  barDataset("Winrate %", t.hourly.winrate,  BLUE_COLOR,  BLUE_FILL));
+    makeWinrateBarChart("time-hourly-wr",  t.hourly.labels,  barDataset("Winrate %", t.hourly.winrate,  BLUE_COLOR,  BLUE_FILL), false, true);
 
     // ── 4. CLASSES ───────────────────────────────────────────────
     const cLabelsPT = c.labels.map(k => CLASS_META[k]?.label ?? k);
@@ -587,5 +637,6 @@ function buildCharts(charts) {
 
     // ── 5. MODOS DE JOGO ────────────────────────────────────────
     const gLabelsPT = g.labels.map(k => GAME_MODE_LABELS[k] ?? k);
-    makeHorizontalBarChart("game-modes-chart", gLabelsPT, barDataset("Partidas", g.games, BLUE_COLOR, BLUE_FILL));
+    makeHorizontalBarChart("game-modes-chart",   gLabelsPT, barDataset("Partidas",   g.games,   BLUE_COLOR,   BLUE_FILL));
+    makeWinrateBarChart("game-modes-winrate", gLabelsPT, barDataset("Winrate %", g.winrate || [], GOLD_COLOR, GOLD_FILL));
 }
