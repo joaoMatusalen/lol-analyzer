@@ -692,8 +692,3 @@ def get_player_analysis(name: str, tag: str, region: str):
             "game_modes": chart_game_modes,
         },
     }
-<<<<<<< HEAD
-=======
-#%%
-
->>>>>>> bdd68fc (update: index new style)
