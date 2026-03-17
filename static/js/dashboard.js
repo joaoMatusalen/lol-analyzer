@@ -43,7 +43,11 @@ const DEFAULT_TOOLTIP = {
 //  TOOLTIP GLOBAL (evita overflow:hidden dos cards)
 // ================================================================
 
-(function initTooltip() {
+// ================================================================
+//  TOOLTIP GLOBAL (evita overflow:hidden dos cards)
+// ================================================================
+
+function initTooltip() {
     const tip = document.createElement("div");
     tip.id = "classic-tooltip";
     document.body.appendChild(tip);
@@ -73,7 +77,7 @@ const DEFAULT_TOOLTIP = {
     document.addEventListener("mouseout", e => {
         if (e.target.closest(".classic-info-icon")) tip.classList.remove("visible");
     });
-})();
+}
 
 // ================================================================
 //  INSIGHT BADGES
@@ -114,12 +118,27 @@ function buildInsights(stats) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    initTooltip();
+
     document.getElementById("logo").addEventListener("click", e => {
         e.stopPropagation();
         window.location.href = "/";
     });
 
-    const data = JSON.parse(localStorage.getItem("analysisData"));
+    // Limpa inputs do header search (browser pode restaurar após reload)
+    const nameInput = document.getElementById("header-playerName");
+    const tagInput  = document.getElementById("header-playerTag");
+    if (nameInput) nameInput.value = "";
+    if (tagInput)  tagInput.value  = "";
+
+    let data;
+    try {
+        data = JSON.parse(localStorage.getItem("analysisData"));
+    } catch {
+        console.warn("Dados corrompidos no localStorage. Redirecionando...");
+        window.location.href = "/";
+        return;
+    }
     if (!data) {
         console.warn("Nenhum dado encontrado. Redirecionando...");
         window.location.href = "/";
@@ -144,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const resp   = await fetch("/analyze", {
                     method:  "POST",
                     headers: { "Content-Type": "application/json" },
-                    body:    JSON.stringify({ name, tag, region }),
+                    body:    JSON.stringify({ playerName: name, playerTag: tag, region }),
                 });
                 const result = await resp.json();
                 if (result.error) {
