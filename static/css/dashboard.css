@@ -89,12 +89,6 @@ body::before {
     color: #fff;
 }
 
-.player-info p {
-    font-size: 0.95rem;
-    color: var(--text-soft);
-    font-weight: 500;
-}
-
 /* ── Header search box ── */
 .header-search-fields {
     display: flex;
@@ -155,24 +149,13 @@ body::before {
     opacity: 0.85;
 }
 
-/* ── Dashboard banner ── */
-.dashboard-banner {
-    margin: 32px 0 8px;
-    padding: 32px 40px;
-    background: linear-gradient(135deg, rgba(201,170,113,0.08) 0%, rgba(100,180,255,0.05) 100%);
-    border: 1px solid rgba(201,170,113,0.15);
-    border-radius: 16px;
-    position: relative;
-    overflow: hidden;
-}
+/* ============================================
+   BANNER
+   ============================================ */
 
-.dashboard-banner::before {
-    content: "";
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(201,170,113,0.08) 0%, transparent 70%);
-    pointer-events: none;
+.dashboard-banner-simple {
+    margin: 32px 0 8px;
+    padding: 24px 0 28px;
 }
 
 .dashboard-banner-eyebrow {
@@ -207,10 +190,12 @@ body::before {
     line-height: 1.6;
 }
 
-/* ── Classic-only info icon + tooltip ── */
+/* ============================================
+   CLASSIC-ONLY INFO ICON & TOOLTIP
+   ============================================ */
+
 .classic-info-icon {
     margin-left: auto;
-    position: relative;
     display: inline-flex;
     align-items: center;
     cursor: help;
@@ -226,28 +211,68 @@ body::before {
     color: var(--gold);
 }
 
-.classic-info-icon::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: calc(100% + 8px);
-    right: 0;
+#classic-tooltip {
+    position: fixed;
     background: rgba(10, 22, 40, 0.97);
-    border: 1px solid rgba(201,170,113,0.3);
+    border: 1px solid rgba(201,170,113,0.35);
     border-radius: 8px;
-    color: rgba(255,255,255,0.85);
+    color: rgba(255,255,255,0.88);
     font-size: 0.75rem;
-    font-weight: 400;
+    font-family: 'Inter', sans-serif;
     line-height: 1.5;
     padding: 8px 12px;
-    white-space: nowrap;
+    white-space: normal;
+    max-width: min(280px, calc(100vw - 24px));
     pointer-events: none;
+    z-index: 9999;
     opacity: 0;
     transform: translateY(4px);
-    transition: opacity 0.2s, transform 0.2s;
-    z-index: 100;
-    font-family: 'Inter', sans-serif;
-    text-transform: none;
-    letter-spacing: 0;
+    transition: opacity 0.18s, transform 0.18s;
+}
+
+#classic-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ============================================
+   HERO INSIGHT BADGES
+   ============================================ */
+
+.hero-badge-insight {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.hero-badge-insight.positive {
+    background: rgba(80, 220, 140, 0.12);
+    border: 1px solid rgba(80, 220, 140, 0.3);
+    color: rgba(80, 220, 140, 0.9);
+}
+
+.hero-badge-insight.negative {
+    background: rgba(255, 99, 99, 0.12);
+    border: 1px solid rgba(255, 99, 99, 0.3);
+    color: rgba(255, 99, 99, 0.9);
+}
+
+.hero-badge-insight.neutral {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.hero-insights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
 }
 
 /* ============================================
@@ -357,6 +382,19 @@ body::before {
     flex-shrink: 0;
 }
 
+.champion-img-border {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: linear-gradient(135deg, var(--gold), transparent 60%) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    z-index: 3;
+    pointer-events: none;
+}
+
 .champion-hero-img {
     width: 120px;
     height: 120px;
@@ -401,34 +439,6 @@ body::before {
     line-height: 1.1;
     margin-bottom: 18px;
     text-shadow: 0 2px 16px rgba(201,170,113,0.2);
-}
-
-.champion-hero-badges {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.hero-badge {
-    padding: 5px 14px;
-    border-radius: 100px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    background: rgba(201,170,113,0.12);
-    border: 1px solid rgba(201,170,113,0.3);
-    color: var(--gold-light);
-}
-
-.hero-badge-kda {
-    background: rgba(100, 180, 255, 0.08);
-    border-color: rgba(100, 180, 255, 0.25);
-    color: #a8d8ff;
-}
-
-.hero-badge-games {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.12);
-    color: var(--text-soft);
 }
 
 /* ============================================
@@ -513,24 +523,6 @@ body::before {
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--text-muted);
-}
-
-.classic-only-badge {
-    margin-left: auto;
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: rgba(201, 170, 113, 0.7);
-    border: 1px solid rgba(201, 170, 113, 0.25);
-    border-radius: 4px;
-    padding: 2px 7px;
-    white-space: nowrap;
-}
-
-.classic-info-icon:hover::after {
-    opacity: 1;
-    transform: translateY(0);
 }
 
 .card-value {
@@ -718,10 +710,6 @@ body::before {
     padding: 8px 6px;
 }
 
-.ping-item .ping-label {
-    flex: 1;
-}
-
 .kpi-card:hover .ping-item {
     background: rgba(255, 255, 255, 0.06);
 }
@@ -817,7 +805,7 @@ body::before {
 }
 
 /* ============================================
-   LANE CHART (vertical bars + icons)
+   FREQUENCY CHART (barras verticais + ícones)
    ============================================ */
 
 .lane-chart-container {
@@ -945,13 +933,7 @@ body::before {
         text-align: center;
     }
 
-    .player-info {
-        text-align: center;
-    }
-
-    .section-header h2 {
-        font-size: 1.6rem;
-    }
+    .section-header h2 { font-size: 1.6rem; }
 
     .champion-hero {
         flex-direction: column;
@@ -960,76 +942,41 @@ body::before {
         gap: 20px;
     }
 
-    .champion-hero-badges {
-        justify-content: center;
-    }
+    .hero-insights { justify-content: center; }
 
-    .champion-hero-name {
-        font-size: 1.8rem;
-    }
+    .champion-hero-name { font-size: 1.8rem; }
 
     .kpi-grid {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 14px;
     }
 
-    .wide-cards-row {
-        grid-template-columns: 1fr;
-    }
+    .wide-cards-row  { grid-template-columns: 1fr; }
+    .charts-two-col  { grid-template-columns: 1fr; }
 
-    .charts-two-col {
-        grid-template-columns: 1fr;
-    }
-
-    .chart-canvas {
-        height: 240px !important;
-    }
-
-    .chart-tabs {
-        gap: 6px;
-    }
-
-    .chart-tab {
-        font-size: 0.73rem;
-        padding: 5px 12px;
-    }
-
-    .value {
-        font-size: 2rem;
-    }
+    .chart-canvas { height: 240px !important; }
+    .chart-tabs   { gap: 6px; }
+    .chart-tab    { font-size: 0.73rem; padding: 5px 12px; }
+    .value        { font-size: 2rem; }
 }
 
 @media (max-width: 600px) {
-    .objectives-display { grid-template-columns: repeat(3, 1fr); }
-    .pings-grid         { grid-template-columns: repeat(3, 1fr); }
+    .objectives-display   { grid-template-columns: repeat(3, 1fr); }
+    .pings-grid           { grid-template-columns: repeat(3, 1fr); }
     .lane-chart-container { gap: 10px; }
-    .lane-bar-icon      { width: 32px; height: 32px; }
+    .lane-bar-icon        { width: 32px; height: 32px; }
 }
 
 @media (max-width: 480px) {
     .container { padding: 0 14px; }
+    .logo h1   { font-size: 1.3rem; }
 
-    .logo h1 { font-size: 1.3rem; }
+    .kpi-grid { grid-template-columns: 1fr; gap: 12px; }
 
-    .kpi-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
+    .wide-card .multikill-display { grid-template-columns: repeat(2, 1fr); }
+    .objectives-display           { grid-template-columns: repeat(2, 1fr); }
 
-    .wide-card .multikill-display {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .objectives-display { grid-template-columns: repeat(2, 1fr); }
-
-    .value { font-size: 1.75rem; }
-
-    .champion-hero-img {
-        width: 90px;
-        height: 90px;
-    }
-
-    .champion-hero-name {
-        font-size: 1.5rem;
-    }
+    .value             { font-size: 1.75rem; }
+    .champion-hero-img { width: 90px; height: 90px; }
+    .champion-hero-name{ font-size: 1.5rem; }
 }

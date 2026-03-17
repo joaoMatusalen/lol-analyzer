@@ -42,12 +42,10 @@
         </header>
 
         <!-- Banner de boas-vindas -->
-        <div class="dashboard-banner">
-            <div class="dashboard-banner-content">
-                <p class="dashboard-banner-eyebrow"><i class="fas fa-map-marked-alt"></i> Sua Jornada no League of Legends</p>
-                <h2 class="dashboard-banner-title">Bem-vindo ao seu Dashboard, <span id="banner-player-name">Invocador</span></h2>
-                <p class="dashboard-banner-sub">Acompanhe sua evolução, identifique padrões e melhore sua performance partida a partida.</p>
-            </div>
+        <div class="dashboard-banner-simple">
+            <p class="dashboard-banner-eyebrow"><i class="fas fa-map-marked-alt"></i> Sua Jornada no League of Legends</p>
+            <h2 class="dashboard-banner-title">Bem-vindo ao seu Dashboard, <span>Invocador</span></h2>
+            <p class="dashboard-banner-sub">Acompanhe sua evolução, com estatísticas detalhadas do histórico da sua conta.</p>
         </div>
 
         <!-- ═══════════════════════════════════════════
@@ -74,11 +72,7 @@
                 <div class="champion-hero-info">
                     <p class="champion-hero-label">Invocador</p>
                     <h2 class="champion-hero-name" id="player-hero-name">--</h2>
-                    <div class="champion-hero-badges">
-                        <span class="hero-badge" id="player-winrate-badge">-- WR</span>
-                        <span class="hero-badge hero-badge-kda" id="player-kda-badge">-- KDA</span>
-                        <span class="hero-badge hero-badge-games" id="player-games-badge">-- Partidas</span>
-                    </div>
+                    <div id="player-insights"></div>
                 </div>
             </div>
 
@@ -298,11 +292,7 @@
                 <div class="champion-hero-info">
                     <p class="champion-hero-label">Campeão Mais Jogado</p>
                     <h2 class="champion-hero-name" id="champion-name">--</h2>
-                    <div class="champion-hero-badges">
-                        <span class="hero-badge" id="champ-winrate-badge">-- WR</span>
-                        <span class="hero-badge hero-badge-kda" id="champ-kda-badge">-- KDA</span>
-                        <span class="hero-badge hero-badge-games" id="champ-games-badge">-- Partidas</span>
-                    </div>
+                    <div id="champ-insights"></div>
                 </div>
             </div>
 
@@ -354,7 +344,7 @@
                 </div>
 
                 <div class="kpi-card kpi-card--champion" style="--delay: 0.30s">
-                    <div class="card-header"><i class="fas fa-leaf"></i><h3>Farm Médio</h3></div>
+                    <div class="card-header"><i class="fas fa-leaf"></i><h3>Farm Médio</h3><span class="classic-info-icon" data-tooltip="Dados somente de partidas em Summoner's Rift. Outros modos desconsiderados."><i class="fas fa-question-circle"></i></span></div>
                     <div class="card-value"><p class="value" id="champ-avg-farm">--</p></div>
                     <div class="card-footer">
                         <span class="stat-label">Minions Abatidos</span>
@@ -363,7 +353,7 @@
                 </div>
 
                 <div class="kpi-card kpi-card--champion" style="--delay: 0.35s">
-                    <div class="card-header"><i class="fas fa-eye"></i><h3>Visão Média</h3></div>
+                    <div class="card-header"><i class="fas fa-eye"></i><h3>Visão Média</h3><span class="classic-info-icon" data-tooltip="Dados somente de partidas em Summoner's Rift. Outros modos desconsiderados."><i class="fas fa-question-circle"></i></span></div>
                     <div class="card-value"><p class="value" id="champ-avg-vision">--</p></div>
                     <div class="card-footer">
                         <span class="stat-label">Visão Total</span>
