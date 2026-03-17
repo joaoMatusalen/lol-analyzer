@@ -56,6 +56,19 @@ nav section {
     z-index: 1;
 }
 
+/* Menu overlay (mobile) */
+.menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.menu-overlay.active {
+    display: block;
+}
+
 /* ============================================
    HEADER
    ============================================ */
@@ -429,7 +442,6 @@ nav section {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border-left: 1px solid var(--border);
 }
 
 .about-image img {
@@ -496,7 +508,6 @@ nav section {
     .about-image {
         order: -1;
         max-height: 320px;
-        border-left: none;
         border-bottom: 1px solid var(--border);
     }
 

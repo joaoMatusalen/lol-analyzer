@@ -1,73 +1,67 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Clicked icon
-    const icon = document.getElementById("logo")
-
-    icon.addEventListener("click", function(e){
+    // Logo — volta para home
+    document.getElementById("logo").addEventListener("click", e => {
         e.stopPropagation();
         window.location.href = "/";
-    })
+    });
 
-    // Hamburguer menu
+    // Menu hamburguer
     const hamburger = document.getElementById("hamburguerBtn");
-    const nav = document.getElementById("nav-header");
-    const overlay = document.getElementById("menuOverlay");
+    const nav       = document.getElementById("nav-header");
+    const overlay   = document.getElementById("menuOverlay");
 
-    function openMenu() {
-        nav.classList.add("active");
-        overlay.classList.add("active");
-    }
+    const openMenu  = () => { nav.classList.add("active");    overlay.classList.add("active"); };
+    const closeMenu = () => { nav.classList.remove("active"); overlay.classList.remove("active"); };
 
-    function closeMenu() {
-        nav.classList.remove("active");
-        overlay.classList.remove("active");
-    }
-
-    hamburger.addEventListener("click", function (e) {
+    hamburger.addEventListener("click", e => {
         e.stopPropagation();
-
-        if (nav.classList.contains("active")) {
-            closeMenu();
-        } else {
-            openMenu();
-        }
+        nav.classList.contains("active") ? closeMenu() : openMenu();
     });
 
     overlay.addEventListener("click", closeMenu);
-
     window.addEventListener("scroll", closeMenu);
-
-    document.querySelectorAll(".nav-link").forEach(link => {
-        link.addEventListener("click", closeMenu);
-    });
+    document.querySelectorAll(".nav-link").forEach(l => l.addEventListener("click", closeMenu));
 
 });
 
-document.getElementById("playerForm").addEventListener("submit", async (e) => {
+// Formulário de busca
+document.getElementById("playerForm").addEventListener("submit", async e => {
     e.preventDefault();
 
-    // Collect data form
-    const playerName = document.getElementById("playerName").value;
-    const playerTag = document.getElementById("playerTag").value;
-    const region = document.getElementById("region").value;
+    const playerName = document.getElementById("playerName").value.trim();
+    const playerTag  = document.getElementById("playerTag").value.trim();
+    const region     = document.getElementById("region").value;
+    const btn        = document.getElementById("analyzeBtn");
+    const loading    = document.getElementById("loading");
 
-    document.getElementById("loading").style.display = "block";
+    if (!playerName || !playerTag || !region) return;
 
-    const response = await fetch("/analyze", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            playerName,
-            playerTag,
-            region
-        })
-    });
+    btn.disabled = true;
+    loading.style.display = "flex";
 
-    const data = await response.json();
+    try {
+        const resp = await fetch("/analyze", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({playerName, playerTag, region}),
+        });
 
-    localStorage.setItem("analysisData", JSON.stringify(data));
+        const data = await resp.json();
 
-    window.location.href = "/dashboard";
+        if (data.error) {
+            alert(`Erro: ${data.error}`);
+            btn.disabled = false;
+            loading.style.display = "none";
+            return;
+        }
+
+        localStorage.setItem("analysisData", JSON.stringify(data));
+        window.location.href = "/dashboard";
+
+    } catch {
+        alert("Erro ao conectar com o servidor.");
+        btn.disabled = false;
+        loading.style.display = "none";
+    }
 });
