@@ -8,15 +8,7 @@ from datetime import timedelta, datetime
 
 load_dotenv()
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-token = ""
-=======
 token = os.getenv("RIOT_API")
->>>>>>> 09f562b (fix: remove the trash in to code, update analyze_most_played_champion)
-=======
-token = "RGAPI-d022773f-14e1-4493-b222-2c6e5697495c"
->>>>>>> bdd68fc (update: index new style)
 
 # ================================================================
 #  Variables suport
