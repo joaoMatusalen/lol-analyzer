@@ -9,10 +9,14 @@ from datetime import timedelta, datetime
 load_dotenv()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 token = ""
 =======
 token = os.getenv("RIOT_API")
 >>>>>>> 09f562b (fix: remove the trash in to code, update analyze_most_played_champion)
+=======
+token = "RGAPI-d022773f-14e1-4493-b222-2c6e5697495c"
+>>>>>>> bdd68fc (update: index new style)
 
 # ================================================================
 #  Variables suport
@@ -186,16 +190,19 @@ def collectMultipleMatchesData(region: str, nome: str, tag: str):
     # Collect all Matchs id
     allMatchIds = []
     start_index = 0
-    count_per_request = 30
+    count_per_request = 5
 
-    ##while True:
-    matchIds_page = idMatchs(region, puuid, count=5, start=0)
+    count_per_request_teste = 5
 
-    ##    if len(matchIds_page) < count_per_request:
-    ##        allMatchIds.extend(matchIds_page)
-    ##        break  # Sem mais partidas para buscar
-    ##    allMatchIds.extend(matchIds_page)
-    ##    start_index += count_per_request
+    while True:
+        matchIds_page = idMatchs(region, puuid, count=count_per_request, start=start_index)
+
+        #if len(matchIds_page) < count_per_request:
+        if start_index > 1:
+            allMatchIds.extend(matchIds_page)
+            break  # Sem mais partidas para buscar
+        allMatchIds.extend(matchIds_page)
+        start_index += count_per_request
 
     allMatchIds.extend(matchIds_page)
     start_index += count_per_request
@@ -229,14 +236,16 @@ def collectMultipleMatchesData(region: str, nome: str, tag: str):
         isClassic = gameMode == "CLASSIC"
 
         # Team objectives — somente no modo CLASSIC
-        # Em outros modos (CHERRY, ARAM, etc.) a estrutura de times é diferente
-        # e pode não conter os campos de objetivos padrão
+        # No modo (CHERRY) a estrutura de times é diferente e pode não conter os campos de objetivos.
+
         if isClassic:
             playerTeamId = playerData["teamId"]
             teamData     = next((t for t in matchInfo["info"]["teams"] if t["teamId"] == playerTeamId), None)
+            
             if teamData is None:
                 print(f"Time do jogador não encontrado na partida {matchId}")
                 continue
+            
             baronKills    = teamData["objectives"]["baron"]["kills"]
             dragonKills   = teamData["objectives"]["dragon"]["kills"]
             hordeKills    = teamData["objectives"]["horde"]["kills"]
@@ -316,6 +325,8 @@ def analyze_general_results(df):
 
     general_results = {}
 
+    filter = df["gameMode"] == "CLASSIC"
+
     general_results["matchResult"] = {
         "total_win":  int(df["win"].sum()),
         "total_loss": int((~df["win"]).sum()),
@@ -349,7 +360,7 @@ def analyze_general_results(df):
 
     general_results["farm"] = {
         "total": int(df["totalMinionsKilled"].sum()),
-        "avg":   int(df["totalMinionsKilled"].mean()),
+        "avg":   int(df["totalMinionsKilled"][filter].mean()),
     }
 
     general_results["vision"] = {
@@ -689,3 +700,8 @@ def get_player_analysis(name: str, tag: str, region: str):
             "game_modes": chart_game_modes,
         },
     }
+<<<<<<< HEAD
+=======
+#%%
+
+>>>>>>> bdd68fc (update: index new style)
