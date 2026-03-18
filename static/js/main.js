@@ -25,6 +25,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+// pageshow dispara tanto no carregamento normal quanto ao voltar pelo histórico (bfcache).
+// Garante que o form está sempre limpo e o spinner escondido quando a página é exibida.
+window.addEventListener("pageshow", () => {
+    const form    = document.getElementById("playerForm");
+    const btn     = document.getElementById("analyzeBtn");
+    const loading = document.getElementById("loading");
+
+    if (form)    form.reset();
+    if (btn)     btn.disabled = false;
+    if (loading) loading.style.display = "none";
+});
+
 // Formulário de busca
 document.getElementById("playerForm").addEventListener("submit", async e => {
     e.preventDefault();

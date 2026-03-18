@@ -317,7 +317,7 @@ def analyze_general_results(df):
 
     general_results = {}
 
-    filter = df["gameMode"] == "CLASSIC"
+    #filter = df["gameMode"] == "CLASSIC"
 
     general_results["matchResult"] = {
         "total_win":  int(df["win"].sum()),
@@ -352,7 +352,7 @@ def analyze_general_results(df):
 
     general_results["farm"] = {
         "total": int(df["totalMinionsKilled"].sum()),
-        "avg":   int(df["totalMinionsKilled"][filter].mean()),
+        "avg":   int(df["totalMinionsKilled"].mean()),
     }
 
     general_results["vision"] = {

@@ -86,29 +86,54 @@ function initTooltip() {
 // Benchmarks de referência (médias aproximadas elo médio)
 const BENCHMARKS = { winrate: 50, kda: 2.5 };
 
-function insightBadge(label, value, bench) {
+// Strings traduzíveis dos insights
+const INSIGHT_STRINGS = {
+    pt: {
+        aboveAvg: (label, pct) => `${label} ${pct}% acima da média`,
+        belowAvg: (label, pct) => `${label} ${pct}% abaixo da média`,
+        onAvg:    (label)      => `${label} na média`,
+        played:   "jogados",
+        winrate:  "Winrate",
+        kda:      "KDA",
+    },
+    en: {
+        aboveAvg: (label, pct) => `${label} ${pct}% above average`,
+        belowAvg: (label, pct) => `${label} ${pct}% below average`,
+        onAvg:    (label)      => `${label} at average`,
+        played:   "played",
+        winrate:  "Win Rate",
+        kda:      "KDA",
+    },
+};
+
+function insightBadge(labelKey, value, bench) {
+    const lang = (typeof getCurrentLang === "function") ? getCurrentLang() : "pt";
+    const s    = INSIGHT_STRINGS[lang] || INSIGHT_STRINGS.pt;
+    const label = labelKey === "winrate" ? s.winrate : s.kda;
     const diff = value - bench;
     const zone = Math.abs(diff) < bench * 0.05;
     let cls, icon, text;
     if (zone) {
-        cls  = "neutral"; icon = "fa-minus";
-        text = `${label} na média`;
+        cls = "neutral"; icon = "fa-minus";
+        text = s.onAvg(label);
     } else if (diff > 0) {
-        cls  = "positive"; icon = "fa-arrow-up";
-        text = `${label} ${Math.abs(Math.round((diff / bench) * 100))}% acima da média`;
+        cls = "positive"; icon = "fa-arrow-up";
+        text = s.aboveAvg(label, Math.abs(Math.round((diff / bench) * 100)));
     } else {
-        cls  = "negative"; icon = "fa-arrow-down";
-        text = `${label} ${Math.abs(Math.round((diff / bench) * 100))}% abaixo da média`;
+        cls = "negative"; icon = "fa-arrow-down";
+        text = s.belowAvg(label, Math.abs(Math.round((diff / bench) * 100)));
     }
     return `<span class="hero-badge-insight ${cls}"><i class="fas ${icon}"></i>${text}</span>`;
 }
 
 function buildInsights(stats) {
+    const lang  = (typeof getCurrentLang === "function") ? getCurrentLang() : "pt";
+    const s     = INSIGHT_STRINGS[lang] || INSIGHT_STRINGS.pt;
     const tempo = stats.sizePlayed.total_time_played || "--";
     return `<div class="hero-insights">
-        ${insightBadge("Winrate", stats.matchResult.win_rate, BENCHMARKS.winrate)}
-        ${insightBadge("KDA",     stats.kda.kda_ratio,        BENCHMARKS.kda)}
-        <span class="hero-badge-insight neutral"><i class="fas fa-clock"></i>${tempo} jogados</span>
+        ${insightBadge("winrate", stats.matchResult.win_rate, BENCHMARKS.winrate)}
+        ${insightBadge("kda",     stats.kda.kda_ratio,        BENCHMARKS.kda)}
+        <span class="hero-badge-insight neutral"><i class="fas fa-clock"></i>${tempo} ${s.played}</span>
     </div>`;
 }
 
@@ -507,6 +532,27 @@ const LANE_META = [
     { key: "Support", color: "rgba(180,130,255,0.8)", icon: "../static/img/roles/Support_icon.png" },
 ];
 
+// Mapa de tradução de dias da semana PT → EN
+const DAY_LABELS_EN = {
+    "Segunda": "Monday",
+    "Terça":   "Tuesday",
+    "Quarta":  "Wednesday",
+    "Quinta":  "Thursday",
+    "Sexta":   "Friday",
+    "Sábado":  "Saturday",
+    "Domingo": "Sunday",
+};
+
+// Mapa EN para CLASS_META (label PT já existe, adiciona EN)
+const CLASS_META_EN = {
+    Fighter:  "Fighter",
+    Tank:     "Tank",
+    Mage:     "Mage",
+    Assassin: "Assassin",
+    Marksman: "Marksman",
+    Support:  "Support",
+};
+
 const CLASS_META = {
     Fighter:  { label: "Lutador",   icon: "../static/img/class/Fighter_icon.png"    },
     Tank:     { label: "Tank",      icon: "../static/img/class/Tank_icon.png"       },
@@ -515,6 +561,17 @@ const CLASS_META = {
     Marksman: { label: "Atirador",  icon: "../static/img/class/Marksman_icon.png"   },
     Support:  { label: "Suporte",   icon: "../static/img/class/Controller_icon.png" },
 };
+
+const GAME_MODE_LABELS_EN = {
+    CLASSIC:    "Summoner's Rift",
+    ARAM:       "Aram",
+    CHERRY:     "Arena",
+    NEXUSBLITZ: "Nexus Blitz",
+    URF:        "URF",
+    ONEFORALL:  "Todos por Um",
+    TUTORIAL:   "Tutorial",
+};
+
 
 const GAME_MODE_LABELS = {
     CLASSIC:    "Summoner's Rift",
@@ -550,20 +607,45 @@ function buildFrequencyChart(containerId, items) {
 // ================================================================
 
 function buildCharts(charts) {
+    const lang = (typeof getCurrentLang === "function") ? getCurrentLang() : "pt";
+    const isPT = lang === "pt";
+
     const m = charts.monthly;
     const l = charts.lanes;
     const t = charts.time;
     const c = charts.classes    || { labels: [], games: [], winrate: [] };
     const g = charts.game_modes || { labels: [], games: [], percentages: [], winrate: [] };
 
+    // Labels traduzíveis
+    const LBL = {
+        kills:      isPT ? "Kills"        : "Kills",
+        deaths:     isPT ? "Mortes"       : "Deaths",
+        assists:    isPT ? "Assistências" : "Assists",
+        gold:       isPT ? "Gold"         : "Gold",
+        damage:     isPT ? "Dano"         : "Damage",
+        winrate:    isPT ? "Winrate"      : "Win Rate",
+        avgKills:   isPT ? "Média de Kills"        : "Average Kills",
+        avgDeaths:  isPT ? "Média de Mortes"       : "Average Deaths",
+        avgAssists: isPT ? "Média de Assistências" : "Average Assists",
+        avgGold:    isPT ? "Gold Médio"   : "Average Gold",
+        avgDamage:  isPT ? "Dano Médio"   : "Average Damage",
+        winratePct: isPT ? "Winrate %"    : "Win Rate %",
+        hours:      isPT ? "Horas"        : "Hours",
+        hoursPlayed:isPT ? "Horas Jogadas": "Hours Played",
+        matches:    isPT ? "Partidas"     : "Matches",
+    };
+
+    // Traduz dias da semana se EN
+    const translateDays = labels => isPT ? labels : labels.map(d => DAY_LABELS_EN[d] ?? d);
+
     // ── 1. EVOLUÇÃO MENSAL ───────────────────────────────────────
     setupTabs("monthly-tabs", {
-        "monthly-kills":   () => makeLineChart("monthly-kills",   m.labels, lineDataset("Kills",        m.avg_kills,  GOLD_COLOR,   GOLD_FILL),   "Média de Kills"),
-        "monthly-deaths":  () => makeLineChart("monthly-deaths",  m.labels, lineDataset("Mortes",       m.avg_deaths, RED_COLOR,    RED_FILL),    "Média de Mortes"),
-        "monthly-assists": () => makeLineChart("monthly-assists",  m.labels, lineDataset("Assistências", m.avg_assists, BLUE_COLOR,  BLUE_FILL),   "Média de Assistências"),
-        "monthly-gold":    () => makeLineChart("monthly-gold",    m.labels, lineDataset("Gold",         m.avg_gold,   PURPLE_COLOR, PURPLE_FILL), "Gold Médio"),
-        "monthly-damage":  () => makeLineChart("monthly-damage",  m.labels, lineDataset("Dano",         m.avg_damage, RED_COLOR,    RED_FILL),    "Dano Médio"),
-        "monthly-winrate": () => makeWinrateBarChart("monthly-winrate", m.labels, barDataset("Winrate", m.win_rate, GREEN_COLOR, GREEN_FILL), true),
+        "monthly-kills":   () => makeLineChart("monthly-kills",   m.labels, lineDataset(LBL.kills,   m.avg_kills,  GOLD_COLOR,   GOLD_FILL),   LBL.avgKills),
+        "monthly-deaths":  () => makeLineChart("monthly-deaths",  m.labels, lineDataset(LBL.deaths,  m.avg_deaths, RED_COLOR,    RED_FILL),    LBL.avgDeaths),
+        "monthly-assists": () => makeLineChart("monthly-assists",  m.labels, lineDataset(LBL.assists, m.avg_assists, BLUE_COLOR,  BLUE_FILL),   LBL.avgAssists),
+        "monthly-gold":    () => makeLineChart("monthly-gold",    m.labels, lineDataset(LBL.gold,    m.avg_gold,   PURPLE_COLOR, PURPLE_FILL), LBL.avgGold),
+        "monthly-damage":  () => makeLineChart("monthly-damage",  m.labels, lineDataset(LBL.damage,  m.avg_damage, RED_COLOR,    RED_FILL),    LBL.avgDamage),
+        "monthly-winrate": () => makeWinrateBarChart("monthly-winrate", m.labels, barDataset(LBL.winrate, m.win_rate, GREEN_COLOR, GREEN_FILL), true),
     });
 
     // ── 2. POSIÇÕES ──────────────────────────────────────────────
@@ -571,25 +653,27 @@ function buildCharts(charts) {
         const meta = LANE_META.find(m => m.key === key) || { color: GOLD_COLOR, icon: "" };
         return { label: key, icon: meta.icon, color: meta.color, value: toFloat(l.games)[i] };
     }));
-    makeWinrateBarChart("lane-winrate", l.labels, barDataset("Winrate %", l.winrate, GOLD_COLOR, GOLD_FILL));
+    makeWinrateBarChart("lane-winrate", l.labels, barDataset(LBL.winratePct, l.winrate, GOLD_COLOR, GOLD_FILL));
 
     // ── 3. PERÍODOS ──────────────────────────────────────────────
-    makeBarChart("time-weekday-hours", t.weekday.labels, barDataset("Horas", t.weekday.hours_played, GOLD_COLOR, GOLD_FILL), defaultScales("Horas Jogadas"));
-    makeWinrateBarChart("time-weekday-wr", t.weekday.labels, barDataset("Winrate %", t.weekday.winrate, GREEN_COLOR, GREEN_FILL));
-    makeWinrateBarChart("time-hourly-wr",  t.hourly.labels,  barDataset("Winrate %", t.hourly.winrate,  BLUE_COLOR,  BLUE_FILL), false, true);
+    const weekdayLabels = translateDays(t.weekday.labels);
+    makeBarChart("time-weekday-hours", weekdayLabels, barDataset(LBL.hours, t.weekday.hours_played, GOLD_COLOR, GOLD_FILL), defaultScales(LBL.hoursPlayed));
+    makeWinrateBarChart("time-weekday-wr", weekdayLabels, barDataset(LBL.winratePct, t.weekday.winrate, GREEN_COLOR, GREEN_FILL));
+    makeWinrateBarChart("time-hourly-wr",  t.hourly.labels,  barDataset(LBL.winratePct, t.hourly.winrate,  BLUE_COLOR,  BLUE_FILL), false, true);
 
     // ── 4. CLASSES ───────────────────────────────────────────────
     buildFrequencyChart("class-frequency-chart", c.labels.map((key, i) => {
-        const meta = CLASS_META[key] || { label: key, icon: "" };
-        return { label: meta.label, icon: meta.icon, color: GOLD_COLOR, value: c.games[i] };
+        const meta  = CLASS_META[key] || { label: key, icon: "" };
+        const label = isPT ? meta.label : (CLASS_META_EN[key] ?? meta.label);
+        return { label, icon: meta.icon, color: GOLD_COLOR, value: c.games[i] };
     }));
     makeWinrateBarChart("class-winrate",
-        c.labels.map(k => CLASS_META[k]?.label ?? k),
-        barDataset("Winrate %", c.winrate, PURPLE_COLOR, PURPLE_FILL)
+        c.labels.map(k => isPT ? (CLASS_META[k]?.label ?? k) : (CLASS_META_EN[k] ?? k)),
+        barDataset(LBL.winratePct, c.winrate, PURPLE_COLOR, PURPLE_FILL)
     );
 
     // ── 5. MODOS DE JOGO ────────────────────────────────────────
-    const gLabelsPT = g.labels.map(k => GAME_MODE_LABELS[k] ?? k);
-    makeHorizontalBarChart("game-modes-chart",   gLabelsPT, barDataset("Partidas",  g.games,           BLUE_COLOR,  BLUE_FILL));
-    makeWinrateBarChart(   "game-modes-winrate", gLabelsPT, barDataset("Winrate %", g.winrate || [],    GOLD_COLOR,  GOLD_FILL));
+    const gLabelsPT = g.labels.map(k => isPT ? (GAME_MODE_LABELS[k]?.label ?? k) : (GAME_MODE_LABELS_EN[k] ?? k));
+    makeHorizontalBarChart("game-modes-chart",   gLabelsPT, barDataset(LBL.matches,    g.games,           BLUE_COLOR,  BLUE_FILL));
+    makeWinrateBarChart(   "game-modes-winrate", gLabelsPT, barDataset(LBL.winratePct, g.winrate || [],    GOLD_COLOR,  GOLD_FILL));
 }
