@@ -8,11 +8,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="shortcut icon" class="fas fa-chart-line" type="image/x-icon">
+    <script src="../static/js/i18n.js" defer></script>
     <script src="../static/js/main.js" defer></script>
 </head>
 <body>
-    <div class="menu-overlay" id="menuOverlay"></div>
+   
     <div class="container">
+        <div class="menu-overlay" id="menuOverlay"></div>
         <!-- Header -->
         <header class="header" id="header">
             <div class="header-content">
@@ -20,19 +22,33 @@
                     <i class="fas fa-chart-line"></i>
                     <h1>LoL Analyzer</h1>
                 </div>
-                <nav class="nav" id="nav-header">
-                    <a href="#home" class="nav-link active">Início</a>
-                    <a href="#features" class="nav-link">Recursos</a>
-                    <a href="#about" class="nav-link">Sobre</a>
-                </nav>
 
-                <!-- Hamburger Button-->
-                <button class="header-hamburguer" id="hamburguerBtn">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
+                    <div class="nav-content">
+                            <nav class="nav" id="nav-header">
+                            <a href="#home" class="nav-link active" data-pt="Início" data-en="Home">Início</a>
+                            <a href="#features" class="nav-link" data-pt="Recursos" data-en="Features">Recursos</a>
+                            <a href="#about" class="nav-link" data-pt="Sobre" data-en="About">Sobre</a>
+                        </nav>
+                        <div class="lang-switcher">
+                            <button class="lang-globe-btn" id="langGlobeBtn" aria-label="Change language">
+                                <i class="fas fa-globe"></i>
+                            </button>
+                            <div class="lang-dropdown" id="langDropdown">
+                                <button class="lang-btn" data-lang="pt">PT — Português</button>
+                                <button class="lang-btn" data-lang="en">EN — English</button>
+                            </div>
+                        </div>
+
+                        <!-- Hamburger Button-->
+                        <button class="header-hamburguer" id="hamburguerBtn">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                    </div>
+
+                </div>
+                
         </header>
         
         <nav>
@@ -40,44 +56,44 @@
             <section class="searchTitle" id="home">
                 <div class="searchTitle-content">
                     <div class="searchTitle-text">
-                        <h2 class="searchTitle-title">Analise sua Performance no League of Legends</h2>
-                        <p class="searchTitle-description">
+                        <h2 class="searchTitle-title" data-pt="Analise sua Performance no League of Legends" data-en="Analyze Your League of Legends Performance">Analise sua Performance no League of Legends</h2>
+                        <p class="searchTitle-description" data-pt="Descubra suas estatísticas, analise seu desempenho e acompanhe sua evolução desde o início no jogo mais popular do mundo." data-en="Discover your stats, analyze your performance and track your evolution since day one in the world's most popular game.">
                             Descubra suas estatísticas, analise seu desempenho e acompanhe sua evolução desde o início no jogo mais popular do mundo.
                         </p>
                     </div>
                     
                     <div class="search-form">
-                        <h3>Buscar Jogador</h3>
+                        <h3 data-pt="Buscar Jogador" data-en="Search Player">Buscar Jogador</h3>
                         <form id="playerForm">
                             <div class="form-group">
-                                <label for="playerName">Nome do Invocador</label>
-                                <input type="text" id="playerName" name="playerName" placeholder="Ex: Jogador" required>
+                                <label for="playerName" data-pt="Nome do Invocador" data-en="Summoner Name">Nome do Invocador</label>
+                                <input type="text" id="playerName" name="playerName" placeholder="Ex: Jogador" data-pt-placeholder="Ex: Jogador" data-en-placeholder="Ex: Player" required>
                             </div>
                             
                             <div class="form-group">
-                                <label for="playerTag">Tag</label>
-                                <input type="text" id="playerTag" name="playerTag" placeholder="Ex: br1" required>
+                                <label for="playerTag" data-pt="Tag" data-en="Tag">Tag</label>
+                                <input type="text" id="playerTag" name="playerTag" placeholder="Ex: br1" data-pt-placeholder="Ex: br1" data-en-placeholder="Ex: NA1" required>
                             </div>
                             
                             <div class="form-group">
-                                <label for="region">Região</label>
+                                <label for="region" data-pt="Região" data-en="Region">Região</label>
                                 <select id="region" name="region" required>
-                                    <option value="">Selecione uma região</option>
-                                    <option value="americas" selected>Americas (BR, NA, LAN, LAS)</option>
-                                    <option value="europe">Europe (EUW, EUNE, TR, RU)</option>
-                                    <option value="asia">Asia (KR, JP, OCE)</option>
+                                    <option value="" data-pt="Selecione uma região" data-en="Select a region">Selecione uma região</option>
+                                    <option value="americas" selected data-pt="Americas (BR, NA, LAN, LAS)" data-en="Americas (BR, NA, LAN, LAS)">Americas (BR, NA, LAN, LAS)</option>
+                                    <option value="europe" data-pt="Europe (EUW, EUNE, TR, RU)" data-en="Europe (EUW, EUNE, TR, RU)">Europe (EUW, EUNE, TR, RU)</option>
+                                    <option value="asia" data-pt="Asia (KR, JP, OCE)" data-en="Asia (KR, JP, OCE)">Asia (KR, JP, OCE)</option>
                                 </select>
                             </div>
                             
                             <button type="submit" class="btn-primary" id="analyzeBtn">
                                 <i class="fas fa-search"></i>
-                                Analisar Performance
+                                <span data-pt="Analisar Performance" data-en="Analyze Performance">Analisar Performance</span>
                             </button>
                         </form>
                         
                         <div class="loading" id="loading" style="display: none;">
                             <div class="spinner"></div>
-                            <p>Coletando dados das partidas...</p>
+                            <p data-pt="Coletando dados das partidas..." data-en="Collecting match data...">Coletando dados das partidas...</p>
                         </div>
                     </div>
                 </div>
@@ -86,54 +102,37 @@
             <!-- Features Section -->
             <section class="features" id="features">
                 <div class="features-content">
-                    <h2>Recursos Disponíveis</h2>
+                    <h2 data-pt="Recursos Disponíveis" data-en="Available Features">Recursos Disponíveis</h2>
                     <div class="features-grid">
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-trophy"></i>
-                            </div>
-                            <h3>Estatísticas Gerais</h3>
-                            <p>KDA médio, taxa de vitória, dano total, farm e muito mais</p>
+                            <div class="feature-icon"><i class="fas fa-trophy"></i></div>
+                            <h3 data-pt="Estatísticas Gerais" data-en="General Statistics">Estatísticas Gerais</h3>
+                            <p data-pt="KDA médio, taxa de vitória, dano total, farm e muito mais" data-en="Average KDA, win rate, total damage, farm and much more">KDA médio, taxa de vitória, dano total, farm e muito mais</p>
                         </div>
-                        
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-user-ninja"></i>
-                            </div>
-                            <h3>Análise por Campeão</h3>
-                            <p>Performance detalhada com seus campeões mais jogados</p>
+                            <div class="feature-icon"><i class="fas fa-user-ninja"></i></div>
+                            <h3 data-pt="Análise por Campeão" data-en="Champion Analysis">Análise por Campeão</h3>
+                            <p data-pt="Performance detalhada com seus campeões mais jogados" data-en="Detailed performance with your most played champions">Performance detalhada com seus campeões mais jogados</p>
                         </div>
-                        
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-map"></i>
-                            </div>
-                            <h3>Performance por Lane</h3>
-                            <p>Estatísticas específicas para cada posição no mapa</p>
+                            <div class="feature-icon"><i class="fas fa-map"></i></div>
+                            <h3 data-pt="Performance por Lane" data-en="Lane Performance">Performance por Lane</h3>
+                            <p data-pt="Estatísticas específicas para cada posição no mapa" data-en="Specific statistics for each position on the map">Estatísticas específicas para cada posição no mapa</p>
                         </div>
-                        
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-chart-bar"></i>
-                            </div>
-                            <h3>Gráficos Interativos</h3>
-                            <p>Visualizações dinâmicas dos seus dados de jogo</p>
+                            <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+                            <h3 data-pt="Gráficos Interativos" data-en="Interactive Charts">Gráficos Interativos</h3>
+                            <p data-pt="Visualizações dinâmicas dos seus dados de jogo" data-en="Dynamic visualizations of your game data">Visualizações dinâmicas dos seus dados de jogo</p>
                         </div>
-                        
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-history"></i>
-                            </div>
-                            <h3>Histórico de Partidas</h3>
-                            <p>Análise detalhada das suas últimas partidas</p>
+                            <div class="feature-icon"><i class="fas fa-history"></i></div>
+                            <h3 data-pt="Histórico de Partidas" data-en="Match History">Histórico de Partidas</h3>
+                            <p data-pt="Análise detalhada das suas últimas partidas" data-en="Detailed analysis of your recent matches">Análise detalhada das suas últimas partidas</p>
                         </div>
-                        
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-eye"></i>
-                            </div>
-                            <h3>Vision Score</h3>
-                            <p>Análise da sua contribuição em visão e wards</p>
+                            <div class="feature-icon"><i class="fas fa-eye"></i></div>
+                            <h3 data-pt="Vision Score" data-en="Vision Score">Vision Score</h3>
+                            <p data-pt="Análise da sua contribuição em visão e wards" data-en="Analysis of your vision and ward contribution">Análise da sua contribuição em visão e wards</p>
                         </div>
                     </div>
                 </div>
@@ -143,12 +142,12 @@
             <section class="about" id="about">
                 <div class="about-wrapper">
                     <div class="about-text">
-                        <h2>Sobre o LoL Analyzer</h2>
-                        <p>O <strong>LoL Analyzer</strong> utiliza a API oficial da Riot Games para coletar e analisar
+                        <h2 data-pt="Sobre o LoL Analyzer" data-en="About LoL Analyzer">Sobre o LoL Analyzer</h2>
+                        <p data-pt="O LoL Analyzer utiliza a API oficial da Riot Games para coletar e analisar dados das suas partidas no League of Legends." data-en="LoL Analyzer uses the official Riot Games API to collect and analyze data from your League of Legends matches.">O <strong>LoL Analyzer</strong> utiliza a API oficial da Riot Games para coletar e analisar
                             dados das suas partidas no League of Legends.</p>
-                        <p>A plataforma transforma estatísticas brutas em <strong>insights claros</strong>, mostrando
+                        <p data-pt="A plataforma transforma estatísticas brutas em insights claros, mostrando sua evolução desde a primeira partida até os jogos mais recentes." data-en="The platform transforms raw statistics into clear insights, showing your evolution from the first match to the most recent games.">A plataforma transforma estatísticas brutas em <strong>insights claros</strong>, mostrando
                             sua evolução desde a primeira partida até os jogos mais recentes.</p>
-                        <p>Ideal para jogadores que querem evoluir de forma estratégica, baseada em dados reais.</p>
+                        <p data-pt="Ideal para jogadores que querem evoluir de forma estratégica, baseada em dados reais." data-en="Ideal for players who want to improve strategically, based on real data.">Ideal para jogadores que querem evoluir de forma estratégica, baseada em dados reais.</p>
                     </div>
 
                     <div class="about-image">
@@ -164,7 +163,7 @@
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
-                <p>&copy; 2026 LoL Analyzer - Desenvolvido por João Victor Magalhães Matusalen.</p>
+                <p data-pt="&copy; 2026 LoL Analyzer - Desenvolvido por João Victor Magalhães Matusalen." data-en="&copy; 2026 LoL Analyzer - Developed by João Victor Magalhães Matusalen." >&copy; 2026 LoL Analyzer - Desenvolvido por João Victor Magalhães Matusalen.</p>
                 <div class="social-links">
                     <a class="social-link" target="_blank" rel="noopener noreferrer" href="https://github.com/joaoMatusalen"><i class="fab fa-github"></i></a>
                     <a class="social-link" target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/joaomatusalen/"><i class="fab fa-linkedin"></i></a>
