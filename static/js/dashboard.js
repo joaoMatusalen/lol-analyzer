@@ -43,10 +43,6 @@ const DEFAULT_TOOLTIP = {
 //  TOOLTIP GLOBAL (evita overflow:hidden dos cards)
 // ================================================================
 
-// ================================================================
-//  TOOLTIP GLOBAL (evita overflow:hidden dos cards)
-// ================================================================
-
 function initTooltip() {
     const tip = document.createElement("div");
     tip.id = "classic-tooltip";
@@ -470,7 +466,7 @@ function makeWinrateBarChart(id, labels, dataset, showLegend = false, compactTic
     }));
 }
 
-function makeHorizontalBarChart(id, labels, dataset) {
+function makeHorizontalBarChart(id, labels, dataset, matchesLabel = "Partidas") {
     const canvas = document.getElementById(id);
     if (!canvas) return;
     registerChart(id, new Chart(canvas, {
@@ -481,7 +477,7 @@ function makeHorizontalBarChart(id, labels, dataset) {
             responsive: true, maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: { ...DEFAULT_TOOLTIP, callbacks: { label: ctx => ` ${ctx.parsed.x} partidas` } },
+                tooltip: { ...DEFAULT_TOOLTIP, callbacks: { label: ctx => ` ${ctx.parsed.x} ${matchesLabel.toLowerCase()}` } },
             },
             scales: {
                 x: { ticks: { color: TICK_COLOR, font: BASE_FONT }, grid: { color: GRID_COLOR }, border: { color: "transparent" } },
@@ -673,7 +669,7 @@ function buildCharts(charts) {
     );
 
     // ── 5. MODOS DE JOGO ────────────────────────────────────────
-    const gLabelsPT = g.labels.map(k => isPT ? (GAME_MODE_LABELS[k]?.label ?? k) : (GAME_MODE_LABELS_EN[k] ?? k));
-    makeHorizontalBarChart("game-modes-chart",   gLabelsPT, barDataset(LBL.matches,    g.games,           BLUE_COLOR,  BLUE_FILL));
+    const gLabelsPT = g.labels.map(k => isPT ? (GAME_MODE_LABELS[k] ?? k) : (GAME_MODE_LABELS_EN[k] ?? k));
+    makeHorizontalBarChart("game-modes-chart",   gLabelsPT, barDataset(LBL.matches,    g.games,           BLUE_COLOR,  BLUE_FILL), LBL.matches);
     makeWinrateBarChart(   "game-modes-winrate", gLabelsPT, barDataset(LBL.winratePct, g.winrate || [],    GOLD_COLOR,  GOLD_FILL));
 }
