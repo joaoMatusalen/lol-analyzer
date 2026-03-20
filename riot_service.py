@@ -1,17 +1,17 @@
-#%%
 import time
 import os
 from dotenv import load_dotenv
 import requests
 import pandas as pd
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 load_dotenv()
 
 token = os.getenv("RIOT_API")
 
 # ================================================================
-#  Variables suport
+#  Constantes
 # ================================================================
 
 # Mapa de routing global -> plataforma regional (necessário para summoner-v4)
@@ -29,7 +29,8 @@ ROUTING_TO_PLATFORM = {
     "jp":       "jp1",
 }
 
-    # list for suport code
+# Limite de partidas coletadas por jogador
+MAX_MATCHES = 30
 
 # All pings list
 pings_list = [
@@ -52,7 +53,7 @@ lane_list = {
     "TOP":     "Top",
     "JUNGLE":  "Jungle",
     "MIDDLE":  "Mid",
-    "BOTTOM":  "ADC",
+    "BOTTOM":  "Adc",
     "UTILITY": "Support",
     "":        "Outros",
     "NONE":    "Outros",
@@ -62,13 +63,15 @@ lane_list = {
 #  API HELPERS
 # ================================================================
 
-def editLinkApi(link: str):
-    return link, {"api_key": token}
+def _riot_headers() -> dict:
+    """Retorna os headers padrão de autenticação da Riot API."""
+    return {"X-Riot-Token": token}
 
-def tryRequestApi(url, params):
+def try_request_api(url: str, params: dict = None) -> dict:
+    """Executa GET com retry automático em caso de rate limit (429)."""
     max_retries = 5
-    for i in range(max_retries):
-        resp = requests.get(url, params=params)
+    for _ in range(max_retries):
+        resp = requests.get(url, headers=_riot_headers(), params=params, timeout=10)
         if resp.status_code == 429:
             retry_after = int(resp.headers.get("Retry-After", 121))
             print(f"Rate limit atingido. Aguardando {retry_after}s...")
@@ -77,49 +80,43 @@ def tryRequestApi(url, params):
             return resp.json()
         else:
             print(f"Erro {resp.status_code}: {resp.text}")
-            return {}  # FIX: retorna imediatamente em vez de continuar o loop
+            return {}
     return {}
 
-def convertToDataFrame(matchesData):
+def convert_to_dataframe(matches_data: list) -> pd.DataFrame:
     """Converte lista de dicionários de partidas em DataFrame."""
-    return pd.DataFrame(matchesData)
+    return pd.DataFrame(matches_data)
 
 # ================================================================
 #  API ENDPOINTS
 # ================================================================
 
-def accountInfo(region: str, nome: str, tag: str):
-    url, params = editLinkApi(
-        f"https://{region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{nome}/{tag}"
-    )
-    return tryRequestApi(url, params)
+def account_info(region: str, name: str, tag: str) -> dict:
+    url = f"https://{region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{name}/{tag}"
+    return try_request_api(url)
 
-def idMatchs(region: str, puuid: str, count=5, start=0):
-    url, params = editLinkApi(
-        f"https://{region}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?start={start}&count={count}"
-    )
-    return tryRequestApi(url, params)
+def fetch_match_ids(region: str, puuid: str, count: int = 100, start: int = 0) -> list:
+    url = f"https://{region}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids"
+    return try_request_api(url, params={"start": start, "count": count}) or []
 
-def infoMatchs(region: str, idMatch: str):
-    url, params = editLinkApi(
-        f"https://{region}.api.riotgames.com/lol/match/v5/matches/{idMatch}"
-    )
-    return tryRequestApi(url, params)
+def fetch_match_info(region: str, match_id: str) -> dict:
+    url = f"https://{region}.api.riotgames.com/lol/match/v5/matches/{match_id}"
+    return try_request_api(url)
 
-def summonerInfo(platform: str, puuid: str):
+def summoner_info(platform: str, puuid: str) -> dict:
     """
     Busca dados do summoner (incluindo profileIconId) pelo puuid.
     Usa a plataforma regional (ex: br1), não o routing global (ex: americas).
     """
-    url, params = editLinkApi(
-        f"https://{platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}"
-    )
-    return tryRequestApi(url, params)
+    url = f"https://{platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}"
+    return try_request_api(url)
 
-def get_latest_patch():
-
+def get_latest_patch() -> str:
     try:
-        resp = requests.get("https://ddragon.leagueoflegends.com/api/versions.json", timeout=5)
+        resp = requests.get(
+            "https://ddragon.leagueoflegends.com/api/versions.json",
+            timeout=5
+        )
         return resp.json()[0]
     except Exception:
         return "15.8.1"  # fallback caso a requisição falhe
@@ -156,155 +153,187 @@ def get_champion_classes(patch: str) -> dict:
 #  COLETA DE PARTIDAS
 # ================================================================
 
-def collectMultipleMatchesData(region: str, nome: str, tag: str):
+def _fetch_match_ids(region: str, puuid: str, count_per_page: int = 100, after_match_id: str = None) -> list:
     """
-    Coleta dados de partidas de um jogador específico.
+    Pagina a API até coletar IDs de partidas do jogador.
+    Se after_match_id for informado, coleta apenas partidas mais recentes que ele.
+    Respeita o limite global MAX_MATCHES.
+    """
+    all_ids = []
+    start   = 0
+
+    while len(all_ids) < MAX_MATCHES:
+        batch = min(count_per_page, MAX_MATCHES - len(all_ids))
+        page  = fetch_match_ids(region, puuid, count=batch, start=start)
+        if not page:
+            break
+
+        # Se estamos em modo incremental, para quando encontrar o match já conhecido
+        if after_match_id and after_match_id in page:
+            idx = page.index(after_match_id)
+            all_ids.extend(page[:idx])
+            break
+
+        all_ids.extend(page)
+
+        if len(page) < batch:
+            break
+        start += batch
+
+    print(f"Total de IDs coletados: {len(all_ids)}")
+    return all_ids
+
+
+def _parse_match(match_info: dict, puuid: str, match_id: str) -> dict | None:
+    """Extrai os dados relevantes de uma partida para o jogador indicado pelo puuid."""
+    if not match_info or "info" not in match_info:
+        print(f"Dados ausentes na partida {match_id}")
+        return None
+
+    participants = match_info["info"]["participants"]
+    player_data  = next((p for p in participants if p["puuid"] == puuid), None)
+
+    if player_data is None:
+        print(f"Jogador não encontrado na partida {match_id}")
+        return None
+
+    game_mode  = match_info["info"]["gameMode"]
+    is_classic = game_mode == "CLASSIC"
+
+    # Objetivos de time — somente no modo CLASSIC
+    # No modo CHERRY (Arena) a estrutura de times é diferente e pode não conter esses campos.
+    baron_kills = dragon_kills = horde_kills = 0
+    rift_herald_kills = tower_kills = inhibitor_kills = 0
+
+    if is_classic:
+        player_team_id = player_data["teamId"]
+        team_data = next(
+            (t for t in match_info["info"]["teams"] if t["teamId"] == player_team_id),
+            None
+        )
+        if team_data:
+            obj = team_data.get("objectives", {})
+            baron_kills       = obj.get("baron",      {}).get("kills", 0)
+            dragon_kills      = obj.get("dragon",     {}).get("kills", 0)
+            horde_kills       = obj.get("horde",      {}).get("kills", 0)
+            rift_herald_kills = obj.get("riftHerald", {}).get("kills", 0)
+            tower_kills       = obj.get("tower",      {}).get("kills", 0)
+            inhibitor_kills   = obj.get("inhibitor",  {}).get("kills", 0)
+
+    return {
+        # Partida
+        "matchId":                     match_id,
+        "gameCreation":                match_info["info"]["gameCreation"],
+        "gameDuration":                match_info["info"]["gameDuration"],
+        "gameMode":                    game_mode,
+
+        # Campeão
+        "championName":                player_data["championName"],
+        "championId":                  player_data["championId"],
+
+        # Estatísticas do jogador
+        "kills":                       player_data["kills"],
+        "deaths":                      player_data["deaths"],
+        "assists":                     player_data["assists"],
+        "lane":                        player_data["lane"],
+        "pentaKills":                  player_data["pentaKills"],
+        "win":                         player_data["win"],
+        "totalDamageDealtToChampions": player_data["totalDamageDealtToChampions"],
+        "totalMinionsKilled":          player_data["totalMinionsKilled"] if is_classic else 0,
+        "goldEarned":                  player_data["goldEarned"],
+        "visionScore":                 player_data["visionScore"] if is_classic else 0,
+        "wardsPlaced":                 player_data["wardsPlaced"],
+        "wardsKilled":                 player_data["wardsKilled"],
+        "firstBloodKill":              player_data["firstBloodKill"],
+        "doubleKills":                 player_data["doubleKills"],
+        "tripleKills":                 player_data["tripleKills"],
+        "quadraKills":                 player_data["quadraKills"],
+        "teamPosition":                player_data["teamPosition"],
+        "totalDamageTaken":            player_data["totalDamageTaken"],
+
+        # Objetivos do time (0 fora do CLASSIC)
+        "baronKills":                  baron_kills,
+        "dragonKills":                 dragon_kills,
+        "hordeKills":                  horde_kills,
+        "riftHeraldKills":             rift_herald_kills,
+        "towerKills":                  tower_kills,
+        "inhibitorKills":              inhibitor_kills,
+
+        # Pings — .get() com fallback 0 para compatibilidade com partidas antigas
+        "allInPings":                  player_data.get("allInPings",         0),
+        "assistMePings":               player_data.get("assistMePings",       0),
+        "commandPings":                player_data.get("commandPings",        0),
+        "dangerPings":                 player_data.get("dangerPings",         0),
+        "enemyMissingPings":           player_data.get("enemyMissingPings",   0),
+        "enemyVisionPings":            player_data.get("enemyVisionPings",    0),
+        "holdPings":                   player_data.get("holdPings",           0),
+        "getBackPings":                player_data.get("getBackPings",        0),
+        "needVisionPings":             player_data.get("needVisionPings",     0),
+        "onMyWayPings":                player_data.get("onMyWayPings",        0),
+        "pushPings":                   player_data.get("pushPings",           0),
+        "visionClearedPings":          player_data.get("visionClearedPings",  0),
+    }
+
+
+def _fetch_match_details(region: str, match_ids: list, puuid: str, max_workers: int = 10, on_progress=None) -> list:
+    """
+    Busca os detalhes de múltiplas partidas em paralelo.
+    on_progress(current, total): callback opcional chamado a cada partida recebida.
+    """
+    matches  = []
+    total    = len(match_ids)
+    received = 0
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(fetch_match_info, region, mid): mid
+            for mid in match_ids
+        }
+        for future in as_completed(futures):
+            match_id  = futures[future]
+            received += 1
+            print(f"Partida recebida {received}/{total}: {match_id}")
+            try:
+                parsed = _parse_match(future.result(), puuid, match_id)
+            except Exception as e:
+                print(f"Erro ao processar partida {match_id}: {e}")
+                parsed = None
+            if parsed:
+                matches.append(parsed)
+            if on_progress:
+                on_progress(received, total)
+
+    return matches
+
+
+def collect_player_matches(region: str, name: str, tag: str, after_match_id: str = None, on_progress=None) -> tuple[str | None, list]:
+    """
+    Coleta dados de partidas de um jogador.
 
     Args:
-        region (str): Região de routing do jogador (ex: "americas")
-        nome (str): Nome do jogador
-        tag (str): Tag do jogador
+        region:         Região de routing (ex: "americas")
+        name:           Nome do jogador
+        tag:            Tag do jogador
+        after_match_id: Se informado, coleta apenas partidas mais recentes que este ID (update incremental)
+        on_progress:    Callback opcional(current, total) chamado a cada partida processada
 
     Returns:
-        tuple: (puuid: str, matchesData: list)
+        Tupla (puuid, lista de dicionários de partida)
     """
-
-    # Collect acount
-    account = accountInfo(region, nome, tag)
+    account = account_info(region, name, tag)
 
     if not account or "puuid" not in account:
         print("Não foi possível obter informações da conta. Verifique nome, tag e região.")
         return None, []
 
-    # Declare Puuid
-    puuid = account["puuid"]
+    puuid     = account["puuid"]
+    match_ids = _fetch_match_ids(region, puuid, after_match_id=after_match_id)
 
-    # Collect all Matchs id
-    allMatchIds = []
-    start_index = 0
-    count_per_request = 5
+    if not match_ids:
+        return puuid, []
 
-    count_per_request_teste = 5
-
-    while True:
-        matchIds_page = idMatchs(region, puuid, count=count_per_request, start=start_index)
-
-        #if len(matchIds_page) < count_per_request:
-        if start_index > 1:
-            allMatchIds.extend(matchIds_page)
-            break  # Sem mais partidas para buscar
-        allMatchIds.extend(matchIds_page)
-        start_index += count_per_request
-
-    allMatchIds.extend(matchIds_page)
-    start_index += count_per_request
-
-    print(f"Total de IDs coletados: {len(allMatchIds)}")
-
-    # Collect all Matchs data
-    matchesData = []
-
-    for i, matchId in enumerate(allMatchIds):
-        print(matchId)
-        print(f"Coletando partida {i+1}/{len(allMatchIds)}: {matchId}")
-
-        # Collect Match info .json
-        matchInfo = infoMatchs(region, matchId)
-
-        if not matchInfo or "info" not in matchInfo:
-            print(f"Não foi possível obter dados da partida {matchId}")
-            continue
-
-        # Check the player in match    
-        participants = matchInfo["info"]["participants"]
-
-        playerData = next((p for p in participants if p["puuid"] == puuid), None)
-
-        if playerData is None:
-            print(f"Jogador não encontrado na partida {matchId}")
-            continue
-
-        gameMode = matchInfo["info"]["gameMode"]
-        isClassic = gameMode == "CLASSIC"
-
-        # Team objectives — somente no modo CLASSIC
-        # No modo (CHERRY) a estrutura de times é diferente e pode não conter os campos de objetivos.
-
-        if isClassic:
-            playerTeamId = playerData["teamId"]
-            teamData     = next((t for t in matchInfo["info"]["teams"] if t["teamId"] == playerTeamId), None)
-            
-            if teamData is None:
-                print(f"Time do jogador não encontrado na partida {matchId}")
-                continue
-            
-            baronKills    = teamData["objectives"]["baron"]["kills"]
-            dragonKills   = teamData["objectives"]["dragon"]["kills"]
-            hordeKills    = teamData["objectives"]["horde"]["kills"]
-            riftHeraldKills = teamData["objectives"]["riftHerald"]["kills"]
-            towerKills    = teamData["objectives"]["tower"]["kills"]
-            inhibitorKills = teamData["objectives"]["inhibitor"]["kills"]
-        else:
-            baronKills = dragonKills = hordeKills = 0
-            riftHeraldKills = towerKills = inhibitorKills = 0
-
-        matchData = {
-            # Match
-            "matchId":                     matchId,
-            "gameCreation":                matchInfo["info"]["gameCreation"],
-            "gameDuration":                matchInfo["info"]["gameDuration"],
-            "gameMode":                    gameMode,
-
-            # Champion
-            "championName":                playerData["championName"],
-            "championId":                  playerData["championId"],
-
-            # Statistics Player
-            "kills":                       playerData["kills"],
-            "deaths":                      playerData["deaths"],
-            "assists":                     playerData["assists"],
-            "lane":                        playerData["lane"],
-            "pentaKills":                  playerData["pentaKills"],
-            "win":                         playerData["win"],
-            "totalDamageDealtToChampions": playerData["totalDamageDealtToChampions"],
-            "totalMinionsKilled":          playerData["totalMinionsKilled"] if isClassic else 0,
-            "goldEarned":                  playerData["goldEarned"],
-            "visionScore":                 playerData["visionScore"] if isClassic else 0,
-            "wardsPlaced":                 playerData["wardsPlaced"],
-            "wardsKilled":                 playerData["wardsKilled"],
-            "firstBloodKill":              playerData["firstBloodKill"],
-            "doubleKills":                 playerData["doubleKills"],
-            "tripleKills":                 playerData["tripleKills"],
-            "quadraKills":                 playerData["quadraKills"],
-            "teamPosition":                playerData["teamPosition"],
-            "totalDamageTaken":            playerData["totalDamageTaken"],
-
-            # Team Objectives (0 fora do CLASSIC)
-            "baronKills":                  baronKills,
-            "dragonKills":                 dragonKills,
-            "hordeKills":                  hordeKills,
-            "riftHeraldKills":             riftHeraldKills,
-            "towerKills":                  towerKills,
-            "inhibitorKills":              inhibitorKills,
-
-            # Pings
-            "allInPings":                  playerData["allInPings"],
-            "assistMePings":               playerData["assistMePings"],
-            "commandPings":                playerData["commandPings"],
-            "dangerPings":                 playerData["dangerPings"],
-            "enemyMissingPings":           playerData["enemyMissingPings"],
-            "enemyVisionPings":            playerData["enemyVisionPings"],
-            "holdPings":                   playerData["holdPings"],
-            "getBackPings":                playerData["getBackPings"],
-            "needVisionPings":             playerData["needVisionPings"],
-            "onMyWayPings":                playerData["onMyWayPings"],
-            "pushPings":                   playerData["pushPings"],
-            "visionClearedPings":          playerData["visionClearedPings"],
-        }
-
-        matchesData.append(matchData)
-
-    return puuid, matchesData
+    matches = _fetch_match_details(region, match_ids, puuid, on_progress=on_progress)
+    return puuid, matches
 
 # ================================================================
 #  ANÁLISES
@@ -316,8 +345,6 @@ def analyze_general_results(df):
         return {}
 
     general_results = {}
-
-    #filter = df["gameMode"] == "CLASSIC"
 
     general_results["matchResult"] = {
         "total_win":  int(df["win"].sum()),
@@ -408,8 +435,6 @@ def analyze_most_played_champion(df):
 
     most_played = df["championName"].value_counts().idxmax()
     dfChamp = df[df["championName"] == most_played]
-
-    dfChamp
 
     champ_results = {}
 
@@ -638,41 +663,73 @@ def analyze_game_modes(df: pd.DataFrame) -> dict:
     }
 
 
-# ==============================================================
+def analyze_match_history(df: pd.DataFrame, patch: str) -> list:
+    """
+    Retorna as últimas 20 partidas formatadas para o histórico.
+    Cada item contém: matchId, champion, win, kills, deaths, assists,
+    kda, damage, gold, duration, gameMode, gameCreation.
+    """
+    df = df.copy()
+    df["date"] = pd.to_datetime(df["gameCreation"], unit="ms")
+    df = df.sort_values("date", ascending=False).head(20)
+
+    GAME_MODE_LABELS = {
+        "CLASSIC":    "Summoner's Rift",
+        "ARAM":       "ARAM",
+        "CHERRY":     "Arena",
+        "NEXUSBLITZ": "Nexus Blitz",
+        "URF":        "URF",
+        "ONEFORALL":  "One for All",
+        "TUTORIAL":   "Tutorial",
+    }
+
+    history = []
+    for _, row in df.iterrows():
+        kills   = int(row["kills"])
+        deaths  = int(row["deaths"])
+        assists = int(row["assists"])
+        kda     = round((kills + assists) / max(deaths, 1), 2)
+
+        duration_s = int(row["gameDuration"])
+        duration   = f"{duration_s // 60}m {duration_s % 60:02d}s"
+
+        history.append({
+            "matchId":      row["matchId"],
+            "champion":     row["championName"],
+            "champion_img": f"https://ddragon.leagueoflegends.com/cdn/{patch}/img/champion/{row['championName']}.png",
+            "win":          bool(row["win"]),
+            "kills":        kills,
+            "deaths":       deaths,
+            "assists":      assists,
+            "kda":          kda,
+            "damage":       int(row["totalDamageDealtToChampions"]),
+            "gold":         int(row["goldEarned"]),
+            "cs":           int(row["totalMinionsKilled"]),
+            "duration":     duration,
+            "gameMode":     GAME_MODE_LABELS.get(row["gameMode"], row["gameMode"]),
+            "date":         row["date"].strftime("%d/%m/%Y"),
+        })
+
+    return history
+
+
+# ================================================================
 #  ENTRY POINT
 # ================================================================
 
-def get_player_analysis(name: str, tag: str, region: str):
+def _build_result(matches_raw: list, name: str, tag: str, region: str, patch: str) -> dict:
+    """
+    Recebe a lista bruta de dicionários de partidas e devolve o payload
+    completo para o frontend. Separado para ser reutilizado no update incremental.
+    """
+    df_matches = convert_to_dataframe(matches_raw)
 
-    print(f"Coletando dados para {name}#{tag}...")
-
-    # Patch buscado antes da coleta — necessário para get_champion_classes e URLs de imagem
-    patch = get_latest_patch()
-
-    puuid, allMatchesData = collectMultipleMatchesData(region, name, tag)
-
-    if not allMatchesData:
-        raise ValueError(f"Nenhuma partida encontrada para {name}#{tag} na região {region}.")
-
-    df_matches = convertToDataFrame(allMatchesData)
-
-    # Adiciona coluna classTag via Data Dragon
     class_map = get_champion_classes(patch)
     df_matches["classTag"] = df_matches["championName"].map(class_map).fillna("Unknown")
 
     general_results  = analyze_general_results(df_matches)
     champion_results = analyze_most_played_champion(df_matches)
     champion_name    = champion_results["champion"]
-
-    chart_monthly    = analyze_monthly_evolution(df_matches)
-    chart_lanes      = analyze_lane_stats(df_matches)
-    chart_time       = analyze_time_patterns(df_matches)
-    chart_classes    = analyze_class_stats(df_matches)
-    chart_game_modes = analyze_game_modes(df_matches)
-
-    platform = ROUTING_TO_PLATFORM.get(region, "br1")
-    summoner = summonerInfo(platform, puuid)
-    profile_icon_id = summoner.get("profileIconId", 1) if summoner else 1
 
     return {
         "player_info": {
@@ -683,12 +740,112 @@ def get_player_analysis(name: str, tag: str, region: str):
         "geral_matchs":     general_results,
         "champion_results": champion_results,
         "champion_img":     f"https://ddragon.leagueoflegends.com/cdn/{patch}/img/champion/{champion_name}.png",
-        "player_icon_img":  f"https://ddragon.leagueoflegends.com/cdn/{patch}/img/profileicon/{profile_icon_id}.png",
+        "match_history":    analyze_match_history(df_matches, patch),
         "charts": {
-            "monthly":    chart_monthly,
-            "lanes":      chart_lanes,
-            "time":       chart_time,
-            "classes":    chart_classes,
-            "game_modes": chart_game_modes,
+            "monthly":    analyze_monthly_evolution(df_matches),
+            "lanes":      analyze_lane_stats(df_matches),
+            "time":       analyze_time_patterns(df_matches),
+            "classes":    analyze_class_stats(df_matches),
+            "game_modes": analyze_game_modes(df_matches),
         },
+    }
+
+
+def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> dict:
+    """
+    Busca completa. Coleta ate MAX_MATCHES partidas do zero.
+    on_progress(step, message, current, total): callback de progresso opcional.
+    """
+    print(f"[FULL] Coletando dados para {name}#{tag}...")
+
+    def _prog(current, total):
+        if on_progress:
+            on_progress("collecting", f"Analisando partidas...", current, total)
+
+    if on_progress:
+        on_progress("account", "Buscando conta...", 0, 0)
+
+    patch = get_latest_patch()
+    puuid, matches_raw = collect_player_matches(region, name, tag, on_progress=_prog)
+
+    if not matches_raw:
+        raise ValueError(f"Nenhuma partida encontrada para {name}#{tag} na regiao {region}.")
+    if not puuid:
+        raise ValueError(f"Nao foi possivel identificar o jogador {name}#{tag}.")
+
+    if on_progress:
+        on_progress("processing", "Processando estatisticas...", 0, 0)
+
+    platform        = ROUTING_TO_PLATFORM.get(region, "br1")
+    summoner        = summoner_info(platform, puuid)
+    profile_icon_id = summoner.get("profileIconId", 1) if summoner else 1
+
+    result = _build_result(matches_raw, name, tag, region, patch)
+    result["player_icon_img"] = (
+        f"https://ddragon.leagueoflegends.com/cdn/{patch}/img/profileicon/{profile_icon_id}.png"
+    )
+
+    if on_progress:
+        on_progress("done", "Concluido!", 0, 0)
+
+    return {
+        "result":          result,
+        "matches_raw":     matches_raw,
+        "latest_match_id": matches_raw[0]["matchId"] if matches_raw else None,
+        "timestamp":       datetime.now(timezone.utc).isoformat(),
+        "patch":           patch,
+        "puuid":           puuid,
+        "profile_icon_id": profile_icon_id,
+    }
+
+
+def get_player_analysis_incremental(
+    name: str, tag: str, region: str,
+    cached_matches: list, latest_match_id: str,
+    patch: str, puuid_cached: str, profile_icon_id: int,
+    on_progress=None,
+) -> dict:
+    """
+    Update incremental. Busca apenas partidas mais recentes que latest_match_id.
+    """
+    print(f"[INCREMENTAL] Atualizando {name}#{tag} a partir de {latest_match_id}...")
+
+    def _prog(current, total):
+        if on_progress:
+            on_progress("collecting", "Buscando novas partidas...", current, total)
+
+    if on_progress:
+        on_progress("account", "Verificando novas partidas...", 0, 0)
+
+    patch = get_latest_patch()
+
+    _, new_matches = collect_player_matches(
+        region, name, tag, after_match_id=latest_match_id, on_progress=_prog
+    )
+
+    if not new_matches:
+        print(f"[INCREMENTAL] Nenhuma partida nova para {name}#{tag}.")
+        return None
+
+    if on_progress:
+        on_progress("processing", "Processando estatisticas...", 0, 0)
+
+    all_matches = (new_matches + cached_matches)[:MAX_MATCHES]
+
+    result = _build_result(all_matches, name, tag, region, patch)
+    result["player_icon_img"] = (
+        f"https://ddragon.leagueoflegends.com/cdn/{patch}/img/profileicon/{profile_icon_id}.png"
+    )
+
+    if on_progress:
+        on_progress("done", "Concluido!", 0, 0)
+
+    return {
+        "result":          result,
+        "matches_raw":     all_matches,
+        "latest_match_id": all_matches[0]["matchId"],
+        "timestamp":       datetime.now(timezone.utc).isoformat(),
+        "patch":           patch,
+        "puuid":           puuid_cached,
+        "profile_icon_id": profile_icon_id,
     }

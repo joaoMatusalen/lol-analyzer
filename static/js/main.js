@@ -1,12 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Logo — volta para home
     document.getElementById("logo").addEventListener("click", e => {
         e.stopPropagation();
         window.location.href = "/";
     });
 
-    // Menu hamburguer
     const hamburger = document.getElementById("hamburguerBtn");
     const nav       = document.getElementById("nav-header");
     const overlay   = document.getElementById("menuOverlay");
@@ -22,11 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
     overlay.addEventListener("click", closeMenu);
     window.addEventListener("scroll", closeMenu);
     document.querySelectorAll(".nav-link").forEach(l => l.addEventListener("click", closeMenu));
-
 });
 
-// pageshow dispara tanto no carregamento normal quanto ao voltar pelo histórico (bfcache).
-// Garante que o form está sempre limpo e o spinner escondido quando a página é exibida.
+// pageshow garante form limpo ao voltar pelo histórico do browser
 window.addEventListener("pageshow", () => {
     const form    = document.getElementById("playerForm");
     const btn     = document.getElementById("analyzeBtn");
@@ -35,11 +31,103 @@ window.addEventListener("pageshow", () => {
     if (form)    form.reset();
     if (btn)     btn.disabled = false;
     if (loading) loading.style.display = "none";
+
+    hideProgress();
 });
 
-// Formulário de busca
+// ================================================================
+//  BARRA DE PROGRESSO
+// ================================================================
+
+function showProgress(message, current, total) {
+    const wrap = document.getElementById("progressWrap");
+    const bar  = document.getElementById("progressBar");
+    const msg  = document.getElementById("progressMsg");
+    const pct  = document.getElementById("progressPct");
+
+    if (!wrap) return;
+    wrap.style.display = "block";
+
+    if (msg)  msg.textContent  = message || "Processando...";
+
+    const percent = total > 0 ? Math.round((current / total) * 100) : null;
+
+    if (bar) {
+        if (percent !== null) {
+            bar.style.width = percent + "%";
+        } else {
+            // animacao indeterminada enquanto nao ha total definido
+            bar.style.width = "100%";
+            bar.classList.add("indeterminate");
+        }
+    }
+    if (pct) {
+        pct.textContent = percent !== null ? `${percent}%` : "";
+        bar && bar.classList.toggle("indeterminate", percent === null);
+    }
+}
+
+function hideProgress() {
+    const wrap = document.getElementById("progressWrap");
+    if (wrap) wrap.style.display = "none";
+}
+
+function showError(message) {
+    const box = document.getElementById("errorBox");
+    const msg = document.getElementById("errorMsg");
+    if (!box) return;
+    if (msg) msg.textContent = message;
+    box.style.display = "flex";
+}
+
+function hideError() {
+    const box = document.getElementById("errorBox");
+    if (box) box.style.display = "none";
+}
+
+// ================================================================
+//  POLLING
+// ================================================================
+
+async function pollJob(jobId, btn) {
+    const INTERVAL = 1500; // ms
+
+    return new Promise((resolve, reject) => {
+        const interval = setInterval(async () => {
+            try {
+                const resp = await fetch(`/status/${jobId}`);
+                const data = await resp.json();
+
+                if (data.error && !data.status) {
+                    clearInterval(interval);
+                    reject(new Error(data.error));
+                    return;
+                }
+
+                showProgress(data.step, data.current, data.total);
+
+                if (data.status === "done") {
+                    clearInterval(interval);
+                    resolve(data.result);
+                } else if (data.status === "error") {
+                    clearInterval(interval);
+                    reject(new Error(data.error || "Erro desconhecido."));
+                }
+            } catch (err) {
+                clearInterval(interval);
+                reject(err);
+            }
+        }, INTERVAL);
+    });
+}
+
+// ================================================================
+//  FORMULARIO DE BUSCA
+// ================================================================
+
 document.getElementById("playerForm").addEventListener("submit", async e => {
     e.preventDefault();
+    hideError();
 
     const playerName = document.getElementById("playerName").value.trim();
     const playerTag  = document.getElementById("playerTag").value.trim();
@@ -50,30 +138,36 @@ document.getElementById("playerForm").addEventListener("submit", async e => {
     if (!playerName || !playerTag || !region) return;
 
     btn.disabled = true;
-    loading.style.display = "flex";
+    if (loading) loading.style.display = "none";
+    showProgress("Iniciando...", 0, 0);
 
     try {
+        // Dispara o job
         const resp = await fetch("/analyze", {
             method:  "POST",
             headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify({playerName, playerTag, region}),
+            body:    JSON.stringify({ playerName, playerTag, region }),
         });
 
-        const data = await resp.json();
+        const init = await resp.json();
 
-        if (data.error) {
-            alert(`Erro: ${data.error}`);
+        if (init.error) {
+            hideProgress();
+            showError(init.error);
             btn.disabled = false;
-            loading.style.display = "none";
             return;
         }
 
-        localStorage.setItem("analysisData", JSON.stringify(data));
+        // Faz polling ate o job terminar
+        const result = await pollJob(init.job_id, btn);
+
+        hideProgress();
+        localStorage.setItem("analysisData", JSON.stringify(result));
         window.location.href = "/dashboard";
 
-    } catch {
-        alert("Erro ao conectar com o servidor.");
+    } catch (err) {
+        hideProgress();
+        showError(err.message || "Erro ao conectar com o servidor.");
         btn.disabled = false;
-        loading.style.display = "none";
     }
 });

@@ -59,6 +59,12 @@
             <p class="dashboard-banner-eyebrow"><i class="fas fa-map-marked-alt"></i> <span data-pt="Sua Jornada no League of Legends" data-en="Your League of Legends Journey">Sua Jornada no League of Legends</span></p>
             <h2 class="dashboard-banner-title"><span data-pt="Bem-vindo ao seu Dashboard, " data-en="Welcome to your Dashboard, ">Bem-vindo ao seu Dashboard, </span><span data-pt="Invocador" data-en="Summoner">Invocador</span></h2>
             <p class="dashboard-banner-sub" data-pt="Acompanhe sua evolução, identifique padrões e melhore sua performance partida a partida." data-en="Track your evolution, identify patterns and improve your performance match by match.">Acompanhe sua evolução, identifique padrões e melhore sua performance partida a partida.</p>
+            <div class="banner-update-wrap">
+                <button class="banner-update-btn" id="forceRefreshBtn">
+                    <i class="fas fa-sync-alt"></i> Update
+                </button>
+                <span class="banner-update-timer" id="updateTimer" style="display:none;"></span>
+            </div>
         </div>
 
         <!-- ═══════════════════════════════════════════
@@ -565,6 +571,21 @@
                 <p class="chart-label" data-pt="Winrate por Modo de Jogo" data-en="Win Rate by Game Mode">Winrate por Modo de Jogo</p>
                 <canvas id="game-modes-winrate" class="chart-canvas active-chart"></canvas>
             </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════
+             SEÇÃO 8 — HISTÓRICO DE PARTIDAS
+        ════════════════════════════════════════════ -->
+        <section class="dashboard-section" id="section-history">
+            <div class="section-label">
+                <span class="section-badge"><i class="fas fa-history"></i> <span data-pt="Histórico" data-en="History">Histórico</span></span>
+                <div class="section-line"></div>
+            </div>
+            <div class="section-header">
+                <h2 data-pt="Últimas Partidas" data-en="Recent Matches">Últimas Partidas</h2>
+                <p class="subtitle" data-pt="Resultado detalhado das suas partidas mais recentes" data-en="Detailed results of your most recent matches">Resultado detalhado das suas partidas mais recentes</p>
+            </div>
+            <div class="match-history-list" id="match-history-list"></div>
         </section>
 
         <!-- Footer -->

@@ -202,10 +202,109 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Botão de forçar atualização com cooldown de 2 minutos (persiste no reload)
+    const forceBtn   = document.getElementById("forceRefreshBtn");
+    const timerLabel = document.getElementById("updateTimer");
+    const COOLDOWN_KEY = "lolanalyzer_update_cooldown";
+    const COOLDOWN_MS  = 2 * 60 * 1000;
+
+    if (forceBtn && data.player_info) {
+
+        let countdownInterval = null;
+
+        function startCooldown(startedAt) {
+            localStorage.setItem(COOLDOWN_KEY, startedAt);
+            forceBtn.disabled = true;
+            timerLabel.style.display = "inline";
+
+            countdownInterval = setInterval(() => {
+                const elapsed   = Date.now() - startedAt;
+                const remaining = Math.max(0, Math.ceil((COOLDOWN_MS - elapsed) / 1000));
+                const m = Math.floor(remaining / 60);
+                const s = String(remaining % 60).padStart(2, "0");
+                timerLabel.textContent = `${m}:${s}`;
+
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    localStorage.removeItem(COOLDOWN_KEY);
+                    forceBtn.disabled = false;
+                    timerLabel.style.display = "none";
+                    forceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+                }
+            }, 1000);
+        }
+
+        // Retoma cooldown se ainda ativo após reload
+        const savedAt = parseInt(localStorage.getItem(COOLDOWN_KEY), 10);
+        if (savedAt && Date.now() - savedAt < COOLDOWN_MS) {
+            startCooldown(savedAt);
+        }
+
+        forceBtn.addEventListener("click", async () => {
+            if (forceBtn.disabled) return;
+
+            forceBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Update';
+            startCooldown(Date.now());
+
+            let pollInterval = null;
+
+            try {
+                const resp = await fetch("/analyze", {
+                    method:  "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body:    JSON.stringify({
+                        playerName: data.player_info.name,
+                        playerTag:  data.player_info.tag,
+                        region:     data.player_info.region,
+                        force:      true,
+                    }),
+                });
+                const init = await resp.json();
+
+                if (init.error) {
+                    alert(`Erro: ${init.error}`);
+                    forceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+                    return;
+                }
+
+                pollInterval = setInterval(async () => {
+                    try {
+                        const sr  = await fetch(`/status/${init.job_id}`);
+                        const job = await sr.json();
+
+                        if (job.status === "done") {
+                            clearInterval(pollInterval);
+                            // Garante que os dados estão gravados ANTES de recarregar
+                            localStorage.setItem("analysisData", JSON.stringify(job.result));
+                            // Pequeno tick para garantir que o setItem foi concluído
+                            setTimeout(() => window.location.reload(), 50);
+                        } else if (job.status === "error") {
+                            clearInterval(pollInterval);
+                            alert(`Erro: ${job.error}`);
+                            forceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+                        }
+                    } catch {
+                        clearInterval(pollInterval);
+                        alert("Erro ao verificar status da atualização.");
+                        forceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+                    }
+                }, 1500);
+
+            } catch {
+                if (pollInterval) clearInterval(pollInterval);
+                alert("Erro ao conectar com o servidor.");
+                forceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+            }
+        });
+    }
+
+    // Banner de cache info - removido
+
     bindSection("", data.geral_matchs, data);
     bindSection("champ-", data.champion_results, data);
 
-    if (data.charts) buildCharts(data.charts);
+    if (data.charts)        buildCharts(data.charts);
+    if (data.match_history) buildMatchHistory(data.match_history);
 });
 
 // ================================================================
@@ -672,4 +771,59 @@ function buildCharts(charts) {
     const gLabelsPT = g.labels.map(k => isPT ? (GAME_MODE_LABELS[k] ?? k) : (GAME_MODE_LABELS_EN[k] ?? k));
     makeHorizontalBarChart("game-modes-chart",   gLabelsPT, barDataset(LBL.matches,    g.games,           BLUE_COLOR,  BLUE_FILL), LBL.matches);
     makeWinrateBarChart(   "game-modes-winrate", gLabelsPT, barDataset(LBL.winratePct, g.winrate || [],    GOLD_COLOR,  GOLD_FILL));
+}
+// ================================================================
+//  MATCH HISTORY
+// ================================================================
+
+function buildMatchHistory(history) {
+    const container = document.getElementById("match-history-list");
+    if (!container || !history || !history.length) return;
+
+    const lang = (typeof getCurrentLang === "function") ? getCurrentLang() : "pt";
+    const isPT = lang === "pt";
+
+    container.innerHTML = history.map(m => {
+        const resultClass = m.win ? "match-win" : "match-loss";
+        const resultLabel = m.win
+            ? (isPT ? "Vitória" : "Victory")
+            : (isPT ? "Derrota" : "Defeat");
+        const kdaClass = m.kda >= 5 ? "kda-legendary"
+                       : m.kda >= 3 ? "kda-good"
+                       : m.kda < 1  ? "kda-bad"
+                       : "";
+
+        return `
+        <div class="match-row ${resultClass}">
+            <div class="match-result-bar"></div>
+
+            <img class="match-champ-img" src="${m.champion_img}" alt="${m.champion}"
+                 onerror="this.src='https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/Lux_0.jpg'">
+
+            <div class="match-info">
+                <span class="match-champ-name">${m.champion}</span>
+                <span class="match-mode">${m.gameMode}</span>
+            </div>
+
+            <div class="match-result-label ${resultClass}">
+                ${resultLabel}
+            </div>
+
+            <div class="match-kda-block">
+                <span class="match-kda ${kdaClass}">${m.kills} / <span class="match-deaths">${m.deaths}</span> / ${m.assists}</span>
+                <span class="match-kda-ratio">${m.kda} KDA</span>
+            </div>
+
+            <div class="match-stats">
+                <span><i class="fas fa-coins"></i> ${m.gold.toLocaleString("pt-BR")}</span>
+                <span><i class="fas fa-fire"></i> ${m.damage.toLocaleString("pt-BR")}</span>
+                <span><i class="fas fa-leaf"></i> ${m.cs} CS</span>
+            </div>
+
+            <div class="match-meta">
+                <span class="match-duration"><i class="fas fa-clock"></i> ${m.duration}</span>
+                <span class="match-date">${m.date}</span>
+            </div>
+        </div>`;
+    }).join("");
 }

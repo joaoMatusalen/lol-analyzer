@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../static/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
     <script src="../static/js/i18n.js" defer></script>
     <script src="../static/js/main.js" defer></script>
 </head>
@@ -90,9 +91,23 @@
                             </button>
                         </form>
                         
-                        <div class="loading" id="loading" style="display: none;">
-                            <div class="spinner"></div>
-                            <p data-pt="Coletando dados das partidas..." data-en="Collecting match data...">Coletando dados das partidas...</p>
+                        <!-- Barra de progresso -->
+                        <div class="progress-wrap" id="progressWrap" style="display:none;">
+                            <p class="progress-msg" id="progressMsg">Iniciando...</p>
+                            <div class="progress-track">
+                                <div class="progress-bar" id="progressBar"></div>
+                            </div>
+                            <span class="progress-pct" id="progressPct"></span>
+                        </div>
+
+                        <!-- Erro inline -->
+                        <div class="error-box" id="errorBox" style="display:none;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p id="errorMsg"></p>
+                            <button class="error-close" onclick="hideError()">
+                                <i class="fas fa-times"></i>
+                                <span data-pt="Fechar" data-en="Close">Fechar</span>
+                            </button>
                         </div>
                     </div>
                 </div>
