@@ -1,4 +1,7 @@
+import { initI18n } from './i18n.js';
+
 document.addEventListener("DOMContentLoaded", () => {
+    initI18n();
 
     document.getElementById("logo").addEventListener("click", e => {
         e.stopPropagation();
@@ -16,55 +19,37 @@ document.addEventListener("DOMContentLoaded", () => {
         e.stopPropagation();
         nav.classList.contains("active") ? closeMenu() : openMenu();
     });
-
     overlay.addEventListener("click", closeMenu);
     window.addEventListener("scroll", closeMenu);
     document.querySelectorAll(".nav-link").forEach(l => l.addEventListener("click", closeMenu));
 });
 
-// pageshow garante form limpo ao voltar pelo histórico do browser
 window.addEventListener("pageshow", () => {
     const form    = document.getElementById("playerForm");
     const btn     = document.getElementById("analyzeBtn");
-    const loading = document.getElementById("loading");
-
-    if (form)    form.reset();
-    if (btn)     btn.disabled = false;
-    if (loading) loading.style.display = "none";
-
+    if (form) form.reset();
+    if (btn)  btn.disabled = false;
     hideProgress();
 });
 
-// ================================================================
-//  BARRA DE PROGRESSO
-// ================================================================
+// ── Progress & error ──────────────────────────────────────────────
 
 function showProgress(message, current, total) {
     const wrap = document.getElementById("progressWrap");
     const bar  = document.getElementById("progressBar");
     const msg  = document.getElementById("progressMsg");
     const pct  = document.getElementById("progressPct");
-
     if (!wrap) return;
-    wrap.style.display = "block";
 
-    if (msg)  msg.textContent  = message || "Processando...";
+    wrap.style.display = "block";
+    if (msg) msg.textContent = message || "Processando...";
 
     const percent = total > 0 ? Math.round((current / total) * 100) : null;
-
     if (bar) {
-        if (percent !== null) {
-            bar.style.width = percent + "%";
-        } else {
-            // animacao indeterminada enquanto nao ha total definido
-            bar.style.width = "100%";
-            bar.classList.add("indeterminate");
-        }
+        bar.classList.toggle("indeterminate", percent === null);
+        bar.style.width = percent !== null ? percent + "%" : "100%";
     }
-    if (pct) {
-        pct.textContent = percent !== null ? `${percent}%` : "";
-        bar && bar.classList.toggle("indeterminate", percent === null);
-    }
+    if (pct) pct.textContent = percent !== null ? `${percent}%` : "";
 }
 
 function hideProgress() {
@@ -80,75 +65,50 @@ function showError(message) {
     box.style.display = "flex";
 }
 
-function hideError() {
+window.hideError = function () {
     const box = document.getElementById("errorBox");
     if (box) box.style.display = "none";
-}
+};
 
-// ================================================================
-//  POLLING
-// ================================================================
+// ── Polling ───────────────────────────────────────────────────────
 
-async function pollJob(jobId, btn) {
-    const INTERVAL = 1500; // ms
-
+async function pollJob(jobId) {
     return new Promise((resolve, reject) => {
         const interval = setInterval(async () => {
             try {
                 const resp = await fetch(`/status/${jobId}`);
                 const data = await resp.json();
 
-                if (data.error && !data.status) {
-                    clearInterval(interval);
-                    reject(new Error(data.error));
-                    return;
-                }
-
                 showProgress(data.step, data.current, data.total);
 
-                if (data.status === "done") {
-                    clearInterval(interval);
-                    resolve(data.result);
-                } else if (data.status === "error") {
-                    clearInterval(interval);
-                    reject(new Error(data.error || "Erro desconhecido."));
-                }
-            } catch (err) {
-                clearInterval(interval);
-                reject(err);
-            }
-        }, INTERVAL);
+                if (data.status === "done")  { clearInterval(interval); resolve(data.result); }
+                else if (data.status === "error") { clearInterval(interval); reject(new Error(data.error || "Erro.")); }
+            } catch (err) { clearInterval(interval); reject(err); }
+        }, 1500);
     });
 }
 
-// ================================================================
-//  FORMULARIO DE BUSCA
-// ================================================================
+// ── Form submit ───────────────────────────────────────────────────
 
 document.getElementById("playerForm").addEventListener("submit", async e => {
     e.preventDefault();
-    hideError();
+    window.hideError();
 
     const playerName = document.getElementById("playerName").value.trim();
     const playerTag  = document.getElementById("playerTag").value.trim();
     const region     = document.getElementById("region").value;
     const btn        = document.getElementById("analyzeBtn");
-    const loading    = document.getElementById("loading");
-
     if (!playerName || !playerTag || !region) return;
 
     btn.disabled = true;
-    if (loading) loading.style.display = "none";
     showProgress("Iniciando...", 0, 0);
 
     try {
-        // Dispara o job
         const resp = await fetch("/analyze", {
             method:  "POST",
             headers: { "Content-Type": "application/json" },
             body:    JSON.stringify({ playerName, playerTag, region }),
         });
-
         const init = await resp.json();
 
         if (init.error) {
@@ -158,9 +118,7 @@ document.getElementById("playerForm").addEventListener("submit", async e => {
             return;
         }
 
-        // Faz polling ate o job terminar
-        const result = await pollJob(init.job_id, btn);
-
+        const result = await pollJob(init.job_id);
         hideProgress();
         localStorage.setItem("analysisData", JSON.stringify(result));
         window.location.href = "/dashboard";

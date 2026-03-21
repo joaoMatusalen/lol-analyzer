@@ -7,7 +7,7 @@
 
 const I18N_KEY = "lolanalyzer_lang";
 
-function setLanguage(lang) {
+export function setLanguage(lang) {
     const previous = localStorage.getItem(I18N_KEY);
     localStorage.setItem(I18N_KEY, lang);
     document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
@@ -41,11 +41,11 @@ function setLanguage(lang) {
     }
 }
 
-function getCurrentLang() {
+export function getCurrentLang() {
     return localStorage.getItem(I18N_KEY) || "pt";
 }
 
-function initI18n() {
+export function initI18n() {
     const globeBtn = document.getElementById("langGlobeBtn");
     const dropdown = document.getElementById("langDropdown");
 
@@ -71,5 +71,3 @@ function initI18n() {
     // Aplica o idioma salvo
     setLanguage(getCurrentLang());
 }
-
-document.addEventListener("DOMContentLoaded", initI18n);

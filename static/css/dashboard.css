@@ -1143,13 +1143,13 @@ body::before {
 
 .match-row {
     display: grid;
-    grid-template-columns: 4px 52px 1fr 80px 130px 160px 110px;
+    grid-template-columns: 52px 1fr 80px 130px 160px 110px;
     align-items: center;
     gap: 16px;
     background: var(--glass);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: 14px 16px;
+    padding: 14px 16px 14px 24px;
     transition: background 0.2s, border-color 0.2s;
     position: relative;
     overflow: hidden;
@@ -1160,15 +1160,16 @@ body::before {
     border-color: rgba(255,255,255,0.12);
 }
 
-.match-result-bar {
+.match-row::before {
+    content: '';
     position: absolute;
     left: 0; top: 0; bottom: 0;
     width: 4px;
     border-radius: var(--radius-md) 0 0 var(--radius-md);
 }
 
-.match-win  .match-result-bar { background: rgba(80, 220, 140, 0.9); }
-.match-loss .match-result-bar { background: rgba(255, 99, 99, 0.9);  }
+.match-win::before  { background: rgba(80, 220, 140, 0.9); }
+.match-loss::before { background: rgba(255, 99, 99, 0.9);  }
 
 .match-champ-img {
     width: 48px;
@@ -1267,18 +1268,65 @@ body::before {
 /* Responsive */
 @media (max-width: 768px) {
     .match-row {
-        grid-template-columns: 4px 44px 1fr 70px;
+        grid-template-columns: 44px 1fr 70px;
         grid-template-rows: auto auto;
         gap: 10px 12px;
     }
 
-    .match-kda-block { grid-column: 3; grid-row: 2; align-items: flex-start; }
+    .match-kda-block { grid-column: 2; grid-row: 2; align-items: flex-start; }
     .match-stats     { display: none; }
-    .match-meta      { grid-column: 4; grid-row: 2; }
+    .match-meta      { grid-column: 3; grid-row: 2; }
 }
 
 @media (max-width: 480px) {
-    .match-row { grid-template-columns: 4px 40px 1fr; }
+    .match-row { grid-template-columns: 40px 1fr; }
     .match-result-label { display: none; }
-    .match-meta { grid-column: 3; grid-row: 2; align-items: flex-start; }
+    .match-meta { grid-column: 2; grid-row: 2; align-items: flex-start; }
+}
+
+/* ============================================
+   ERRO INLINE — DASHBOARD
+   ============================================ */
+
+.dash-error-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    background: rgba(255, 99, 99, 0.08);
+    border: 1px solid rgba(255, 99, 99, 0.3);
+    border-radius: var(--radius-md);
+}
+
+.dash-error-box i {
+    font-size: 1.2rem;
+    color: rgba(255, 99, 99, 0.8);
+    flex-shrink: 0;
+}
+
+.dash-error-box p {
+    flex: 1;
+    font-size: 0.88rem;
+    color: var(--text-soft);
+    line-height: 1.5;
+}
+
+.dash-error-box .error-close {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid rgba(255, 99, 99, 0.4);
+    border-radius: 100px;
+    color: rgba(255, 99, 99, 0.8);
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.dash-error-box .error-close:hover {
+    background: rgba(255, 99, 99, 0.1);
 }
