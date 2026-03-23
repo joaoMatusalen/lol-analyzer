@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-_token = 'RGAPI-1529b41e-8122-4792-bac0-1ba2608038b5'
+_token = os.getenv("RIOT_API")
 
 
 def _headers() -> dict:
