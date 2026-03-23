@@ -60,7 +60,7 @@
             <h2 class="dashboard-banner-title"><span data-pt="Bem-vindo ao seu Dashboard, " data-en="Welcome to your Dashboard, ">Bem-vindo ao seu Dashboard, </span><span data-pt="Invocador" data-en="Summoner">Invocador</span></h2>
             <p class="dashboard-banner-sub" data-pt="Acompanhe sua evolução, identifique padrões e melhore sua performance partida a partida." data-en="Track your evolution, identify patterns and improve your performance match by match.">Acompanhe sua evolução, identifique padrões e melhore sua performance partida a partida.</p>
             <div class="banner-update-wrap">
-                <button class="banner-update-btn" id="forceRefreshBtn">
+                <button class="banner-update-btn" id="updateBtn">
                     <i class="fas fa-sync-alt"></i> Update
                 </button>
                 <span class="banner-update-timer" id="updateTimer" style="display:none;"></span>
@@ -85,7 +85,7 @@
             <div class="champion-hero player-hero">
                 <div class="champion-hero-image-wrap">
                     <div class="champion-img-glow"></div>
-                    <img class="champion-hero-img" id="player-icon-img" src="" alt="Player Icon">
+                    <img class="champion-hero-img" id="player-icon-img" alt="Player Icon">
                     <div class="champion-img-border"></div>
                 </div>
                 <div class="champion-hero-info">
@@ -201,7 +201,7 @@
                 </div>
 
                 <div class="kpi-card wide-card" style="--delay: 0.50s">
-                    <div class="card-header"><i class="fas fa-star"></i><h3>Multikills</h3></div>
+                    <div class="card-header"><i class="fas fa-star"></i><h3 data-pt="Multikills" data-en="Multikills">Multikills</h3></div>
                     <div class="multikill-display">
                         <div class="multikill-item">
                             <span class="multikill-label" data-pt="Double" data-en="Double">Double</span>
@@ -232,37 +232,37 @@
                             <img class="objective-icon-img" src="../static/img/objectives/tower.png" alt="Torre">
                             <span class="objective-label" data-pt="Torres" data-en="Towers">Torres</span>
                             <span class="objective-total" id="total-towers">0</span>
-                            <span class="objective-avg">(<span id="avg-towers">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-towers">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                         <div class="objective-item">
                             <img class="objective-icon-img" src="../static/img/objectives/inhibitor.png" alt="Inibidor">
                             <span class="objective-label" data-pt="Inibidores" data-en="Inhibitors">Inibidores</span>
                             <span class="objective-total" id="total-inhibitors">0</span>
-                            <span class="objective-avg">(<span id="avg-inhibitors">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-inhibitors">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                         <div class="objective-item">
                             <img class="objective-icon-img" src="../static/img/objectives/baron.png" alt="Baron">
                             <span class="objective-label" data-pt="Baron" data-en="Baron">Baron</span>
                             <span class="objective-total" id="total-barons">0</span>
-                            <span class="objective-avg">(<span id="avg-barons">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-barons">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                         <div class="objective-item">
                             <img class="objective-icon-img" src="../static/img/objectives/herald.png" alt="Arauto">
                             <span class="objective-label" data-pt="Arauto" data-en="Rift Herald">Arauto</span>
                             <span class="objective-total" id="total-rift-heralds">0</span>
-                            <span class="objective-avg">(<span id="avg-rift-heralds">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-rift-heralds">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                         <div class="objective-item">
                             <img class="objective-icon-img" src="../static/img/objectives/grub.png" alt="Vastilarvas">
                             <span class="objective-label" data-pt="Vastilarvas" data-en="Void Grubs">Vastilarvas</span>
                             <span class="objective-total" id="total-horde">0</span>
-                            <span class="objective-avg">(<span id="avg-horde">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-horde">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                         <div class="objective-item">
                             <img class="objective-icon-img" src="../static/img/objectives/dragon.png" alt="Dragão">
                             <span class="objective-label" data-pt="Dragões" data-en="Dragons">Dragões</span>
                             <span class="objective-total" id="total-dragons">0</span>
-                            <span class="objective-avg">(<span id="avg-dragons">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-dragons">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                     </div>
                 </div>
@@ -305,7 +305,7 @@
             <div class="champion-hero">
                 <div class="champion-hero-image-wrap">
                     <div class="champion-img-glow"></div>
-                    <img class="champion-hero-img" id="champion-img" src="" alt="Champion">
+                    <img class="champion-hero-img" id="champion-img" alt="Champion">
                     <div class="champion-img-border"></div>
                 </div>
                 <div class="champion-hero-info">
@@ -412,7 +412,7 @@
                 </div>
 
                 <div class="kpi-card kpi-card--champion wide-card" style="--delay: 0.50s">
-                    <div class="card-header"><i class="fas fa-star"></i><h3>Multikills</h3></div>
+                    <div class="card-header"><i class="fas fa-star"></i><h3 data-pt="Multikills" data-en="Multikills">Multikills</h3></div>
                     <div class="multikill-display">
                         <div class="multikill-item">
                             <span class="multikill-label" data-pt="Double" data-en="Double">Double</span>

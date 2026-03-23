@@ -39,8 +39,8 @@ def get_job(job_id: str) -> dict | None:
 
 
 def cleanup_old_jobs() -> None:
-    """Remove jobs finalizados com mais de 10 minutos."""
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
+    """Remove jobs finalizados com mais de 3 minutos."""
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=3)
     with _lock:
         to_delete = [
             jid for jid, job in _jobs.items()
@@ -96,7 +96,7 @@ def run_analysis(job_id: str, name: str, tag: str, region: str, force: bool, cac
                 tag             = tag,
                 region          = region,
                 cached_matches  = cached["matches_raw"],
-                latest_match_id = cached["latest_match_id"],
+                latest_match_id_cache = cached["latest_match_id_cache"],
                 patch           = cached["patch"],
                 puuid_cached    = cached["puuid"],
                 profile_icon_id = cached["profile_icon_id"],

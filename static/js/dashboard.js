@@ -90,17 +90,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Botão Update com cooldown
-    const forceBtn   = document.getElementById("forceRefreshBtn");
+    const updateBtn  = document.getElementById("updateBtn");
     const timerLabel = document.getElementById("updateTimer");
     const COOLDOWN_KEY = "lolanalyzer_update_cooldown";
-    const COOLDOWN_MS  = 2 * 60 * 1000;
+    const COOLDOWN_MS  =  2 * 60 * 1000;
 
-    if (forceBtn && data.player_info) {
+    if (updateBtn && data.player_info) {
         let countdownInterval = null;
 
         function startCooldown(startedAt) {
             localStorage.setItem(COOLDOWN_KEY, startedAt);
-            forceBtn.disabled = true;
+            updateBtn.disabled = true;
             timerLabel.style.display = "inline";
 
             countdownInterval = setInterval(() => {
@@ -112,9 +112,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (remaining <= 0) {
                     clearInterval(countdownInterval);
                     localStorage.removeItem(COOLDOWN_KEY);
-                    forceBtn.disabled = false;
+                    updateBtn.disabled = false;
                     timerLabel.style.display = "none";
-                    forceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+                    updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
                 }
             }, 1000);
         }
@@ -122,9 +122,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const savedAt = parseInt(localStorage.getItem(COOLDOWN_KEY), 10);
         if (savedAt && Date.now() - savedAt < COOLDOWN_MS) startCooldown(savedAt);
 
-        forceBtn.addEventListener("click", async () => {
-            if (forceBtn.disabled) return;
-            forceBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Update';
+        updateBtn.addEventListener("click", async () => {
+            if (updateBtn.disabled) return;
+            updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Update';
             startCooldown(Date.now());
 
             let pollInterval = null;
@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }),
                 });
                 const init = await resp.json();
-                if (init.error) { showError(init.error); forceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update'; return; }
+                if (init.error) { showError(init.error); updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update'; return; }
 
                 pollInterval = setInterval(async () => {
                     try {
@@ -153,18 +153,18 @@ document.addEventListener("DOMContentLoaded", () => {
                         } else if (job.status === "error") {
                             clearInterval(pollInterval);
                             showError(job.error);
-                            forceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+                            updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
                         }
                     } catch {
                         clearInterval(pollInterval);
                         showError("Erro ao verificar status da atualização.");
-                        forceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+                        updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
                     }
                 }, 1500);
             } catch {
                 if (pollInterval) clearInterval(pollInterval);
                 showError("Erro ao conectar com o servidor.");
-                forceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+                updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
             }
         });
     }

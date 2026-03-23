@@ -47,8 +47,8 @@ const CLASS_META = {
 };
 
 const GAME_MODE_LABELS = {
-    pt: { CLASSIC: "Summoner's Rift", ARAM: "Aram", CHERRY: "Arena", NEXUSBLITZ: "Blitz do Nexus", URF: "URF", ONEFORALL: "Todos por Um", TUTORIAL: "Tutorial" },
-    en: { CLASSIC: "Summoner's Rift", ARAM: "Aram", CHERRY: "Arena", NEXUSBLITZ: "Nexus Blitz",    URF: "URF", ONEFORALL: "One for All",  TUTORIAL: "Tutorial" },
+    pt: { CLASSIC: "Summoner's Rift", ARAM: "Aram", CHERRY: "Arena", NEXUSBLITZ: "Blitz do Nexus", URF: "URF"},
+    en: { CLASSIC: "Summoner's Rift", ARAM: "Aram", CHERRY: "Arena", NEXUSBLITZ: "Nexus Blitz",    URF: "URF"},
 };
 
 const DAY_LABELS_EN = {
@@ -257,10 +257,10 @@ export function buildCharts(charts) {
     const g = charts.game_modes || { labels: [], games: [], percentages: [], winrate: [] };
 
     const LBL = {
-        kills:       isPT ? "Kills"               : "Kills",
+        kills:       "Kills",
         deaths:      isPT ? "Mortes"              : "Deaths",
         assists:     isPT ? "Assistencias"        : "Assists",
-        gold:        isPT ? "Gold"                : "Gold",
+        gold:        "Gold",
         damage:      isPT ? "Dano"                : "Damage",
         winrate:     isPT ? "Winrate"             : "Win Rate",
         avgKills:    isPT ? "Media de Kills"      : "Average Kills",

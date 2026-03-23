@@ -8,7 +8,8 @@ export function setText(id, value) {
 }
 
 export function fmt(n) {
-    return (n ?? 0).toLocaleString("pt-BR");
+    const locale = getCurrentLang() === "pt" ? "pt-BR" : "en-US";
+    return (n ?? 0).toLocaleString(locale);
 }
 
 // ── Tooltip global (evita overflow:hidden dos cards) ──────────────

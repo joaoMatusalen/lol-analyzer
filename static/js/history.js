@@ -1,5 +1,13 @@
 import { getCurrentLang } from './i18n.js';
 
+function escapeHtml(str) {
+    return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
 export function buildMatchHistory(history) {
     const container = document.getElementById("match-history-list");
     if (!container || !history || !history.length) return;
@@ -16,27 +24,32 @@ export function buildMatchHistory(history) {
                        : m.kda < 1  ? "kda-bad"
                        : "";
 
+        const lang       = getCurrentLang();
+        const locale     = lang === "pt" ? "pt-BR" : "en-US";
+        const goldFmt    = Number(m.gold).toLocaleString(locale);
+        const damageFmt  = Number(m.damage).toLocaleString(locale);
+
         return `
         <div class="match-row ${resultClass}">
-            <img class="match-champ-img" src="${m.champion_img}" alt="${m.champion}"
+            <img class="match-champ-img" src="${escapeHtml(m.champion_img)}" alt="${escapeHtml(m.champion)}"
                  onerror="this.src='https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/Lux_0.jpg'">
             <div class="match-info">
-                <span class="match-champ-name">${m.champion}</span>
-                <span class="match-mode">${m.gameMode}</span>
+                <span class="match-champ-name">${escapeHtml(m.champion)}</span>
+                <span class="match-mode">${escapeHtml(m.gameMode)}</span>
             </div>
             <div class="match-result-label ${resultClass}">${resultLabel}</div>
             <div class="match-kda-block">
-                <span class="match-kda ${kdaClass}">${m.kills} / <span class="match-deaths">${m.deaths}</span> / ${m.assists}</span>
-                <span class="match-kda-ratio">${m.kda} KDA</span>
+                <span class="match-kda ${kdaClass}">${escapeHtml(m.kills)} / <span class="match-deaths">${escapeHtml(m.deaths)}</span> / ${escapeHtml(m.assists)}</span>
+                <span class="match-kda-ratio">${escapeHtml(m.kda)} KDA</span>
             </div>
             <div class="match-stats">
-                <span><i class="fas fa-coins"></i> ${m.gold.toLocaleString("pt-BR")}</span>
-                <span><i class="fas fa-fire"></i> ${m.damage.toLocaleString("pt-BR")}</span>
-                <span><i class="fas fa-leaf"></i> ${m.cs} CS</span>
+                <span><i class="fas fa-coins"></i> ${goldFmt}</span>
+                <span><i class="fas fa-fire"></i> ${damageFmt}</span>
+                <span><i class="fas fa-leaf"></i> ${escapeHtml(m.cs)} CS</span>
             </div>
             <div class="match-meta">
-                <span class="match-duration"><i class="fas fa-clock"></i> ${m.duration}</span>
-                <span class="match-date">${m.date}</span>
+                <span class="match-duration"><i class="fas fa-clock"></i> ${escapeHtml(m.duration)}</span>
+                <span class="match-date">${escapeHtml(m.date)}</span>
             </div>
         </div>`;
     }).join("");

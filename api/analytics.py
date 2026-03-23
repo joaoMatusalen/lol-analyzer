@@ -4,9 +4,44 @@ from datetime import timedelta
 from .parser import PINGS_LIST, LANE_MAP
 
 
+# ── Helper interno ────────────────────────────────────────────────
+
+def _classic_only(df: pd.DataFrame) -> pd.DataFrame:
+    """Retorna apenas partidas do modo CLASSIC."""
+    return df[df["gameMode"] == "CLASSIC"]
+
+
+# ── Análises gerais ───────────────────────────────────────────────
+
 def analyze_general_results(df: pd.DataFrame) -> dict:
+
     if df.empty:
         return {}
+
+    # Farm, visão e objetivos só fazem sentido em partidas CLASSIC
+    df_classic = _classic_only(df)
+
+    farm_avg     = int(df_classic["totalMinionsKilled"].mean()) if not df_classic.empty else 0
+    farm_total   = int(df_classic["totalMinionsKilled"].sum())  if not df_classic.empty else 0
+    vision_avg   = int(df_classic["visionScore"].mean())        if not df_classic.empty else 0
+    vision_total = int(df_classic["visionScore"].sum())         if not df_classic.empty else 0
+
+    objectives = {}
+    if not df_classic.empty:
+        objectives = {
+            "total_dragons":         int(df_classic["dragonKills"].sum()),
+            "avg_dragons":           round(df_classic["dragonKills"].mean(), 1),
+            "total_barons":          int(df_classic["baronKills"].sum()),
+            "avg_barons":            round(df_classic["baronKills"].mean(), 1),
+            "total_towers":          int(df_classic["towerKills"].sum()),
+            "avg_towers":            round(df_classic["towerKills"].mean(), 1),
+            "total_rift_heralds":    int(df_classic["riftHeraldKills"].sum()),
+            "avg_rift_heralds":      round(df_classic["riftHeraldKills"].mean(), 1),
+            "total_horde_heralds":   int(df_classic["hordeKills"].sum()),
+            "avg_horde_heralds":     round(df_classic["hordeKills"].mean(), 1),
+            "total_inhibitor_kills": int(df_classic["inhibitorKills"].sum()),
+            "avg_inhibitor_kills":   round(df_classic["inhibitorKills"].mean(), 1),
+        }
 
     return {
         "matchResult": {
@@ -36,12 +71,12 @@ def analyze_general_results(df: pd.DataFrame) -> dict:
             "avg":   round(df["totalDamageDealtToChampions"].mean()),
         },
         "farm": {
-            "total": int(df["totalMinionsKilled"].sum()),
-            "avg":   int(df["totalMinionsKilled"].mean()),
+            "total": farm_total,
+            "avg":   farm_avg,
         },
         "vision": {
-            "total": int(df["visionScore"].sum()),
-            "avg":   int(df["visionScore"].mean()),
+            "total": vision_total,
+            "avg":   vision_avg,
         },
         "multikills": {
             "double": int(df["doubleKills"].sum()),
@@ -49,20 +84,7 @@ def analyze_general_results(df: pd.DataFrame) -> dict:
             "quadra": int(df["quadraKills"].sum()),
             "penta":  int(df["pentaKills"].sum()),
         },
-        "objectives": {
-            "total_dragons":         int(df["dragonKills"].sum()),
-            "avg_dragons":           round(df["dragonKills"].mean(), 1),
-            "total_barons":          int(df["baronKills"].sum()),
-            "avg_barons":            round(df["baronKills"].mean(), 1),
-            "total_towers":          int(df["towerKills"].sum()),
-            "avg_towers":            round(df["towerKills"].mean(), 1),
-            "total_rift_heralds":    int(df["riftHeraldKills"].sum()),
-            "avg_rift_heralds":      round(df["riftHeraldKills"].mean(), 1),
-            "total_horde_heralds":   int(df["hordeKills"].sum()),
-            "avg_horde_heralds":     round(df["hordeKills"].mean(), 1),
-            "total_inhibitor_kills": int(df["inhibitorKills"].sum()),
-            "avg_inhibitor_kills":   round(df["inhibitorKills"].mean(), 1),
-        },
+        "objectives": objectives,
         "pings": {
             "total":          int(df[PINGS_LIST].sum().sum()),
             "avg_per_game":   round(df[PINGS_LIST].sum(axis=1).mean(), 1),
@@ -83,11 +105,18 @@ def analyze_general_results(df: pd.DataFrame) -> dict:
 
 
 def analyze_most_played_champion(df: pd.DataFrame) -> dict:
+
     if df.empty:
         return {}
 
     champion = df["championName"].value_counts().idxmax()
     dfc      = df[df["championName"] == champion]
+
+    dfc_classic  = _classic_only(dfc)
+    farm_avg     = int(dfc_classic["totalMinionsKilled"].mean()) if not dfc_classic.empty else 0
+    farm_total   = int(dfc_classic["totalMinionsKilled"].sum())  if not dfc_classic.empty else 0
+    vision_avg   = int(dfc_classic["visionScore"].mean())        if not dfc_classic.empty else 0
+    vision_total = int(dfc_classic["visionScore"].sum())         if not dfc_classic.empty else 0
 
     return {
         "champion": champion,
@@ -118,12 +147,12 @@ def analyze_most_played_champion(df: pd.DataFrame) -> dict:
             "avg":   round(dfc["totalDamageDealtToChampions"].mean()),
         },
         "farm": {
-            "total": int(dfc["totalMinionsKilled"].sum()),
-            "avg":   int(dfc["totalMinionsKilled"].mean()),
+            "total": farm_total,
+            "avg":   farm_avg,
         },
         "vision": {
-            "total": int(dfc["visionScore"].sum()),
-            "avg":   int(dfc["visionScore"].mean()),
+            "total": vision_total,
+            "avg":   vision_avg,
         },
         "multikills": {
             "double": int(dfc["doubleKills"].sum()),
@@ -134,46 +163,76 @@ def analyze_most_played_champion(df: pd.DataFrame) -> dict:
     }
 
 
-def analyze_monthly_evolution(df: pd.DataFrame) -> dict:
-    df       = df.copy()
-    df["date"]  = pd.to_datetime(df["gameCreation"], unit="ms")
-    df["month"] = df["date"].dt.to_period("M")
+# ── Gráficos ──────────────────────────────────────────────────────
 
-    g = df.groupby("month").agg(
-        avg_farm    = ("totalMinionsKilled",          "mean"),
-        avg_vision  = ("visionScore",                 "mean"),
-        avg_gold    = ("goldEarned",                  "mean"),
-        avg_deaths  = ("deaths",                      "mean"),
+def analyze_daily_evolution(df: pd.DataFrame) -> dict:
+    """
+    Evolução diária de performance — substitui a análise mensal.
+    Com ~100 partidas a granularidade por dia é muito mais útil e densa.
+    Farm, visão e gold filtram apenas partidas CLASSIC para médias corretas.
+    """
+    if df.empty:
+        return {}
+
+    df = df.copy()
+    df["date"] = pd.to_datetime(df["gameCreation"], unit="ms")
+    df["day"]  = df["date"].dt.date
+
+    # KDA, dano e winrate: todas as partidas
+    g_all = df.groupby("day").agg(
         avg_kills   = ("kills",                       "mean"),
-        avg_assists = ("assists",                     "mean"),
-        avg_damage  = ("totalDamageDealtToChampions", "mean"),
-        win_rate    = ("win",                         "mean"),
-        games       = ("matchId",                     "count"),
-    ).reset_index().sort_values("month")
+        avg_deaths  = ("deaths",                      "mean"),
+        avg_assists = ("assists",                      "mean"),
+        avg_damage  = ("totalDamageDealtToChampions",  "mean"),
+        win_rate    = ("win",                          "mean"),
+        games       = ("matchId",                      "count"),
+    ).reset_index().sort_values("day")
 
-    labels = ["/".join(reversed(str(r).split("-"))) for r in g["month"]]
+    # Farm, visão e gold: apenas CLASSIC
+    df_classic = _classic_only(df)
+    if not df_classic.empty:
+        df_classic = df_classic.copy()
+        df_classic["day"] = df_classic["date"].dt.date
+        g_classic = df_classic.groupby("day").agg(
+            avg_farm   = ("totalMinionsKilled", "mean"),
+            avg_vision = ("visionScore",        "mean"),
+            avg_gold   = ("goldEarned",         "mean"),
+        ).reset_index()
+        g_all = g_all.merge(g_classic, on="day", how="left").fillna(0)
+    else:
+        g_all["avg_farm"]   = 0
+        g_all["avg_vision"] = 0
+        g_all["avg_gold"]   = 0
+
+    labels = [str(d) for d in g_all["day"]]
 
     return {
         "labels":      labels,
-        "avg_farm":    [round(v, 1) for v in g["avg_farm"]],
-        "avg_vision":  [round(v, 1) for v in g["avg_vision"]],
-        "avg_gold":    [round(v, 0) for v in g["avg_gold"]],
-        "avg_deaths":  [round(v, 1) for v in g["avg_deaths"]],
-        "avg_kills":   [round(v, 1) for v in g["avg_kills"]],
-        "avg_assists": [round(v, 1) for v in g["avg_assists"]],
-        "avg_damage":  [round(v, 0) for v in g["avg_damage"]],
-        "win_rate":    [round(v * 100, 1) for v in g["win_rate"]],
-        "games":       [int(v) for v in g["games"]],
+        "avg_kills":   [round(v, 1) for v in g_all["avg_kills"]],
+        "avg_deaths":  [round(v, 1) for v in g_all["avg_deaths"]],
+        "avg_assists": [round(v, 1) for v in g_all["avg_assists"]],
+        "avg_damage":  [round(v, 0) for v in g_all["avg_damage"]],
+        "avg_farm":    [round(v, 1) for v in g_all["avg_farm"]],
+        "avg_vision":  [round(v, 1) for v in g_all["avg_vision"]],
+        "avg_gold":    [round(v, 0) for v in g_all["avg_gold"]],
+        "win_rate":    [round(v * 100, 1) for v in g_all["win_rate"]],
+        "games":       [int(v) for v in g_all["games"]],
     }
 
 
 def analyze_lane_stats(df: pd.DataFrame) -> dict:
-    df = df.copy()
-    df["lane_label"] = df["teamPosition"].map(LANE_MAP).fillna("Outros")
-    df = df[df["lane_label"] != "Outros"]
+    """Apenas partidas CLASSIC têm posição definida."""
+    df_classic = _classic_only(df)
+
+    if df_classic.empty:
+        return {"labels": [], "games": [], "winrate": []}
+
+    df_c = df_classic.copy()
+    df_c["lane_label"] = df_c["teamPosition"].map(LANE_MAP).fillna("Outros")
+    df_c = df_c[df_c["lane_label"] != "Outros"]
 
     lane_order = ["Top", "Jungle", "Mid", "Adc", "Support"]
-    g = df.groupby("lane_label").agg(
+    g = df_c.groupby("lane_label").agg(
         games = ("matchId", "count"),
         wins  = ("win",     "sum"),
     ).reindex(lane_order, fill_value=0).reset_index()
@@ -188,6 +247,10 @@ def analyze_lane_stats(df: pd.DataFrame) -> dict:
 
 
 def analyze_time_patterns(df: pd.DataFrame) -> dict:
+
+    if df.empty:
+        return {}
+
     df = df.copy()
     df["date"] = pd.to_datetime(df["gameCreation"], unit="ms")
 
@@ -230,6 +293,10 @@ def analyze_time_patterns(df: pd.DataFrame) -> dict:
 
 
 def analyze_class_stats(df: pd.DataFrame) -> dict:
+
+    if df.empty:
+        return {}
+
     CLASS_ORDER = ["Fighter", "Tank", "Mage", "Assassin", "Marksman", "Support"]
 
     df = df.copy()
@@ -252,7 +319,11 @@ def analyze_class_stats(df: pd.DataFrame) -> dict:
 
 
 def analyze_game_modes(df: pd.DataFrame) -> dict:
-    ORDER = ["CLASSIC", "ARAM", "CHERRY", "NEXUSBLITZ", "URF", "ONEFORALL", "TUTORIAL"]
+
+    if df.empty:
+        return {}
+
+    ORDER = ["CLASSIC", "ARAM", "CHERRY", "NEXUSBLITZ", "URF"]
     total = max(len(df), 1)
 
     g = df.groupby("gameMode").agg(
@@ -273,15 +344,16 @@ def analyze_game_modes(df: pd.DataFrame) -> dict:
 
 
 def analyze_match_history(df: pd.DataFrame, patch: str) -> list:
-    """Últimas 20 partidas formatadas para o histórico do dashboard."""
+
+    if df.empty:
+        return []
+
     GAME_MODE_LABELS = {
         "CLASSIC":    "Summoner's Rift",
         "ARAM":       "ARAM",
         "CHERRY":     "Arena",
         "NEXUSBLITZ": "Nexus Blitz",
         "URF":        "URF",
-        "ONEFORALL":  "One for All",
-        "TUTORIAL":   "Tutorial",
     }
 
     df = df.copy()

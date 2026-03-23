@@ -59,7 +59,7 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
         if on_progress:
             on_progress("collecting", "Analisando partidas...", current, total)
 
-    puuid, matches = collect_player_matches(region, name, tag, on_progress=_prog)
+    puuid, last_match_id, matches = collect_player_matches(region, name, tag, on_progress=_prog)
 
     if not matches:
         raise ValueError(f"Nenhuma partida encontrada para {name}#{tag} na regiao {region}.")
@@ -69,7 +69,9 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
     if on_progress:
         on_progress("processing", "Processando estatisticas...", 0, 0)
 
+    # Find platform for summoner V4
     platform        = ROUTING_TO_PLATFORM.get(region, "br1")
+
     summoner        = summoner_info(platform, puuid)
     profile_icon_id = summoner.get("profileIconId", 1) if summoner else 1
 
@@ -84,7 +86,7 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
     return {
         "result":          result,
         "matches_raw":     matches,
-        "latest_match_id": matches[0]["matchId"],
+        "latest_match_id_cache": last_match_id,
         "timestamp":       datetime.now(timezone.utc).isoformat(),
         "patch":           patch,
         "puuid":           puuid,
@@ -97,18 +99,18 @@ def get_player_analysis_incremental(
     tag: str,
     region: str,
     cached_matches: list,
-    latest_match_id: str,
+    latest_match_id_cache: str,
     patch: str,
     puuid_cached: str,
     profile_icon_id: int,
     on_progress=None,
 ) -> dict | None:
     """
-    Update incremental: busca apenas partidas posteriores a latest_match_id,
+    Update incremental: busca apenas partidas posteriores a latest_match_id_cache,
     junta com o histórico em cache e reprocessa.
     Retorna None se não houver partidas novas.
     """
-    print(f"[INCREMENTAL] {name}#{tag} desde {latest_match_id}")
+    print(f"[INCREMENTAL] {name}#{tag} desde {latest_match_id_cache}")
 
     if on_progress:
         on_progress("account", "Verificando novas partidas...", 0, 0)
@@ -119,8 +121,8 @@ def get_player_analysis_incremental(
         if on_progress:
             on_progress("collecting", "Buscando novas partidas...", current, total)
 
-    _, new_matches = collect_player_matches(
-        region, name, tag, after_match_id=latest_match_id, on_progress=_prog
+    _, last_match_id, new_matches = collect_player_matches(
+        region, name, tag, after_match_id=latest_match_id_cache, on_progress=_prog
     )
 
     if not new_matches:
@@ -142,7 +144,7 @@ def get_player_analysis_incremental(
     return {
         "result":          result,
         "matches_raw":     all_matches,
-        "latest_match_id": all_matches[0]["matchId"],
+        "latest_match_id_cache": last_match_id,
         "timestamp":       datetime.now(timezone.utc).isoformat(),
         "patch":           patch,
         "puuid":           puuid_cached,

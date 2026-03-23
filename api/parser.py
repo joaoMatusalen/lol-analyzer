@@ -110,7 +110,7 @@ def _parse_match(match_info: dict, puuid: str, match_id: str) -> dict | None:
         "kills":                       player["kills"],
         "deaths":                      player["deaths"],
         "assists":                     player["assists"],
-        "lane":                        player["lane"],
+        "lane":                        player["lane"] if is_classic else 'unknown',
         "pentaKills":                  player["pentaKills"],
         "win":                         player["win"],
         "totalDamageDealtToChampions": player["totalDamageDealtToChampions"],
@@ -152,7 +152,7 @@ def _fetch_parallel(region: str, match_ids: list, puuid: str, on_progress=None) 
     total    = len(match_ids)
     received = 0
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=5) as executor:
         futures = {executor.submit(fetch_match_info, region, mid): mid for mid in match_ids}
         for future in as_completed(futures):
             match_id  = futures[future]
@@ -190,12 +190,14 @@ def collect_player_matches(
 
     puuid     = account["puuid"]
     match_ids = _paginate_match_ids(region, puuid, after_match_id=after_match_id)
-
+    
     if not match_ids:
-        return puuid, []
+        return puuid, [], []
+    
+    last_match_id = match_ids[0]
 
-    return puuid, _fetch_parallel(region, match_ids, puuid, on_progress=on_progress)
+    return puuid, last_match_id, _fetch_parallel(region, match_ids, puuid, on_progress=on_progress)
 
 
-def convert_to_dataframe(matches_raw: list) -> pd.DataFrame:
-    return pd.DataFrame(matches_raw)
+def convert_to_dataframe(df: list) -> pd.DataFrame:
+    return pd.DataFrame(df)

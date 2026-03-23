@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 app.config["CACHE_TYPE"]            = "FileSystemCache"
 app.config["CACHE_DIR"]             = os.path.join(os.path.dirname(__file__), ".cache")
-app.config["CACHE_DEFAULT_TIMEOUT"] = 60 * 60 * 24 * 30   # 30 dias
+app.config["CACHE_DEFAULT_TIMEOUT"] = 60 * 60 * 24 * 30   # 30 days
 app.config["CACHE_THRESHOLD"]       = 5000
 
 cache = Cache(app)
@@ -44,8 +44,8 @@ def analyze():
     cleanup_old_jobs()
 
     body   = request.get_json(silent=True) or {}
-    name   = str(body.get("playerName", "")).strip()[:64]
-    tag    = str(body.get("playerTag",  "")).strip()[:32]
+    name   = str(body.get("playerName", "")).strip()[:16]
+    tag    = str(body.get("playerTag",  "")).strip()[:6]
     region = str(body.get("region",     "")).strip().lower()
     force  = bool(body.get("force", False))
 
