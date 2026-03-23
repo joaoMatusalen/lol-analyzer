@@ -437,34 +437,35 @@
         </section>
 
         <!-- ═══════════════════════════════════════════
-             SEÇÃO 3 — EVOLUÇÃO MENSAL
+             SEÇÃO 3 — EVOLUÇÃO DIÁRIA
         ════════════════════════════════════════════ -->
-        <section class="dashboard-section" id="section-monthly">
+
+        <section class="dashboard-section" id="section-daily">
             <div class="section-label">
-                <span class="section-badge"><i class="fas fa-calendar-alt"></i> <span data-pt="Evolução Mensal" data-en="Monthly Evolution">Evolução Mensal</span></span>
+                <span class="section-badge"><i class="fas fa-calendar-day"></i> <span data-pt="Evolução Diária" data-en="Daily Evolution">Evolução Diária</span></span>
                 <div class="section-line"></div>
             </div>
             <div class="section-header">
-                <h2 data-pt="Progresso ao Longo do Tempo" data-en="Progress Over Time">Progresso ao Longo do Tempo</h2>
-                <p class="subtitle" data-pt="Médias mensais das suas principais métricas" data-en="Monthly averages of your key metrics">Médias mensais das suas principais métricas</p>
+                <h2 data-pt="Evolução por Dia" data-en="Daily Progress">Evolução por Dia</h2>
+                <p class="subtitle" data-pt="Médias diárias das suas principais métricas" data-en="Daily averages of your key metrics">Médias diárias das suas principais métricas</p>
             </div>
-
-            <div class="chart-tabs" id="monthly-tabs">
-                <button class="chart-tab active" data-chart="monthly-kills" data-pt="Kills" data-en="Kills">Kills</button>
-                <button class="chart-tab" data-chart="monthly-deaths" data-pt="Mortes" data-en="Deaths">Mortes</button>
-                <button class="chart-tab" data-chart="monthly-assists" data-pt="Assistências" data-en="Assists">Assistências</button>
-                <button class="chart-tab" data-chart="monthly-gold" data-pt="Gold" data-en="Gold">Gold</button>
-                <button class="chart-tab" data-chart="monthly-damage" data-pt="Dano" data-en="Damage">Dano</button>
-                <button class="chart-tab" data-chart="monthly-winrate" data-pt="Winrate" data-en="Win Rate">Winrate</button>
+ 
+            <div class="chart-tabs" id="daily-tabs">
+                <button class="chart-tab active" data-chart="daily-kills" data-pt="Kills" data-en="Kills">Kills</button>
+                <button class="chart-tab" data-chart="daily-deaths" data-pt="Mortes" data-en="Deaths">Mortes</button>
+                <button class="chart-tab" data-chart="daily-assists" data-pt="Assistências" data-en="Assists">Assistências</button>
+                <button class="chart-tab" data-chart="daily-gold" data-pt="Gold" data-en="Gold">Gold</button>
+                <button class="chart-tab" data-chart="daily-damage" data-pt="Dano" data-en="Damage">Dano</button>
+                <button class="chart-tab" data-chart="daily-winrate" data-pt="Winrate" data-en="Win Rate">Winrate</button>
             </div>
-
+ 
             <div class="chart-card">
-                <canvas id="monthly-kills"   class="chart-canvas active-chart"></canvas>
-                <canvas id="monthly-deaths"  class="chart-canvas"></canvas>
-                <canvas id="monthly-assists" class="chart-canvas"></canvas>
-                <canvas id="monthly-gold"    class="chart-canvas"></canvas>
-                <canvas id="monthly-damage"  class="chart-canvas"></canvas>
-                <canvas id="monthly-winrate" class="chart-canvas"></canvas>
+                <canvas id="daily-kills"   class="chart-canvas active-chart"></canvas>
+                <canvas id="daily-deaths"  class="chart-canvas"></canvas>
+                <canvas id="daily-assists" class="chart-canvas"></canvas>
+                <canvas id="daily-gold"    class="chart-canvas"></canvas>
+                <canvas id="daily-damage"  class="chart-canvas"></canvas>
+                <canvas id="daily-winrate" class="chart-canvas"></canvas>
             </div>
         </section>
 

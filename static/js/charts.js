@@ -250,17 +250,17 @@ export function buildCharts(charts) {
     const isPT = lang === "pt";
     const gml  = GAME_MODE_LABELS[isPT ? "pt" : "en"];
 
-    const m = charts.monthly;
+    const m = charts.daily;
     const l = charts.lanes;
     const t = charts.time;
     const c = charts.classes    || { labels: [], games: [], winrate: [] };
     const g = charts.game_modes || { labels: [], games: [], percentages: [], winrate: [] };
 
     const LBL = {
-        kills:       "Kills",
+        kills:       isPT ? "Kills"               : "Kills",
         deaths:      isPT ? "Mortes"              : "Deaths",
         assists:     isPT ? "Assistencias"        : "Assists",
-        gold:        "Gold",
+        gold:        isPT ? "Gold"                : "Gold",
         damage:      isPT ? "Dano"                : "Damage",
         winrate:     isPT ? "Winrate"             : "Win Rate",
         avgKills:    isPT ? "Media de Kills"      : "Average Kills",
@@ -277,14 +277,14 @@ export function buildCharts(charts) {
     const translateDays = labels =>
         isPT ? labels : labels.map(d => DAY_LABELS_EN[d] ?? d);
 
-    // 1. Evolucao mensal
-    setupTabs("monthly-tabs", {
-        "monthly-kills":   () => makeLineChart("monthly-kills",   m.labels, lineDataset(LBL.kills,   m.avg_kills,   GOLD_COLOR,   GOLD_FILL),   LBL.avgKills),
-        "monthly-deaths":  () => makeLineChart("monthly-deaths",  m.labels, lineDataset(LBL.deaths,  m.avg_deaths,  RED_COLOR,    RED_FILL),    LBL.avgDeaths),
-        "monthly-assists": () => makeLineChart("monthly-assists",  m.labels, lineDataset(LBL.assists, m.avg_assists, BLUE_COLOR,   BLUE_FILL),   LBL.avgAssists),
-        "monthly-gold":    () => makeLineChart("monthly-gold",    m.labels, lineDataset(LBL.gold,    m.avg_gold,    PURPLE_COLOR, PURPLE_FILL), LBL.avgGold),
-        "monthly-damage":  () => makeLineChart("monthly-damage",  m.labels, lineDataset(LBL.damage,  m.avg_damage,  RED_COLOR,    RED_FILL),    LBL.avgDamage),
-        "monthly-winrate": () => makeWinrateBarChart("monthly-winrate", m.labels, barDataset(LBL.winrate, m.win_rate, GREEN_COLOR, GREEN_FILL), true),
+    // 1. Evolucao diaria
+    setupTabs("daily-tabs", {
+        "daily-kills":   () => makeLineChart("daily-kills",   m.labels, lineDataset(LBL.kills,   m.avg_kills,   GOLD_COLOR,   GOLD_FILL),   LBL.avgKills),
+        "daily-deaths":  () => makeLineChart("daily-deaths",  m.labels, lineDataset(LBL.deaths,  m.avg_deaths,  RED_COLOR,    RED_FILL),    LBL.avgDeaths),
+        "daily-assists": () => makeLineChart("daily-assists",  m.labels, lineDataset(LBL.assists, m.avg_assists, BLUE_COLOR,   BLUE_FILL),   LBL.avgAssists),
+        "daily-gold":    () => makeLineChart("daily-gold",    m.labels, lineDataset(LBL.gold,    m.avg_gold,    PURPLE_COLOR, PURPLE_FILL), LBL.avgGold),
+        "daily-damage":  () => makeLineChart("daily-damage",  m.labels, lineDataset(LBL.damage,  m.avg_damage,  RED_COLOR,    RED_FILL),    LBL.avgDamage),
+        "daily-winrate": () => makeWinrateBarChart("daily-winrate", m.labels, barDataset(LBL.winrate, m.win_rate, GREEN_COLOR, GREEN_FILL), true),
     });
 
     // 2. Posicoes

@@ -110,41 +110,41 @@ def analyze_most_played_champion(df: pd.DataFrame) -> dict:
         return {}
 
     champion = df["championName"].value_counts().idxmax()
-    dfc      = df[df["championName"] == champion]
+    dfChampion      = df[df["championName"] == champion]
 
-    dfc_classic  = _classic_only(dfc)
-    farm_avg     = int(dfc_classic["totalMinionsKilled"].mean()) if not dfc_classic.empty else 0
-    farm_total   = int(dfc_classic["totalMinionsKilled"].sum())  if not dfc_classic.empty else 0
-    vision_avg   = int(dfc_classic["visionScore"].mean())        if not dfc_classic.empty else 0
-    vision_total = int(dfc_classic["visionScore"].sum())         if not dfc_classic.empty else 0
+    dfChampion_classic  = _classic_only(dfChampion)
+    farm_avg     = int(dfChampion_classic["totalMinionsKilled"].mean()) if not dfChampion_classic.empty else 0
+    farm_total   = int(dfChampion_classic["totalMinionsKilled"].sum())  if not dfChampion_classic.empty else 0
+    vision_avg   = int(dfChampion_classic["visionScore"].mean())        if not dfChampion_classic.empty else 0
+    vision_total = int(dfChampion_classic["visionScore"].sum())         if not dfChampion_classic.empty else 0
 
     return {
         "champion": champion,
         "matchResult": {
-            "total_win":  int(dfc["win"].sum()),
-            "total_loss": int((~dfc["win"]).sum()),
-            "win_rate":   round(dfc["win"].mean() * 100, 2),
+            "total_win":  int(dfChampion["win"].sum()),
+            "total_loss": int((~dfChampion["win"]).sum()),
+            "win_rate":   round(dfChampion["win"].mean() * 100, 2),
         },
         "sizePlayed": {
-            "total_matchs":      int(dfc["win"].count()),
-            "total_time_played": str(timedelta(seconds=int(dfc["gameDuration"].sum()))),
+            "total_matchs":      int(dfChampion["win"].count()),
+            "total_time_played": str(timedelta(seconds=int(dfChampion["gameDuration"].sum()))),
         },
         "kda": {
-            "kda_ratio":     round((dfc["kills"].sum() + dfc["assists"].sum()) / max(dfc["deaths"].sum(), 1), 2),
-            "total_kills":   int(dfc["kills"].sum()),
-            "total_deaths":  int(dfc["deaths"].sum()),
-            "total_assists": int(dfc["assists"].sum()),
-            "avg_kills":     round(dfc["kills"].mean(), 1),
-            "avg_deaths":    round(dfc["deaths"].mean(), 1),
-            "avg_assists":   round(dfc["assists"].mean(), 1),
+            "kda_ratio":     round((dfChampion["kills"].sum() + dfChampion["assists"].sum()) / max(dfChampion["deaths"].sum(), 1), 2),
+            "total_kills":   int(dfChampion["kills"].sum()),
+            "total_deaths":  int(dfChampion["deaths"].sum()),
+            "total_assists": int(dfChampion["assists"].sum()),
+            "avg_kills":     round(dfChampion["kills"].mean(), 1),
+            "avg_deaths":    round(dfChampion["deaths"].mean(), 1),
+            "avg_assists":   round(dfChampion["assists"].mean(), 1),
         },
         "economy": {
-            "total_gold": int(dfc["goldEarned"].sum()),
-            "avg_gold":   round(dfc["goldEarned"].mean()),
+            "total_gold": int(dfChampion["goldEarned"].sum()),
+            "avg_gold":   round(dfChampion["goldEarned"].mean()),
         },
         "damage": {
-            "total": int(dfc["totalDamageDealtToChampions"].sum()),
-            "avg":   round(dfc["totalDamageDealtToChampions"].mean()),
+            "total": int(dfChampion["totalDamageDealtToChampions"].sum()),
+            "avg":   round(dfChampion["totalDamageDealtToChampions"].mean()),
         },
         "farm": {
             "total": farm_total,
@@ -155,10 +155,14 @@ def analyze_most_played_champion(df: pd.DataFrame) -> dict:
             "avg":   vision_avg,
         },
         "multikills": {
-            "double": int(dfc["doubleKills"].sum()),
-            "triple": int(dfc["tripleKills"].sum()),
-            "quadra": int(dfc["quadraKills"].sum()),
-            "penta":  int(dfc["pentaKills"].sum()),
+            "double": int(dfChampion["doubleKills"].sum()),
+            "triple": int(dfChampion["tripleKills"].sum()),
+            "quadra": int(dfChampion["quadraKills"].sum()),
+            "penta":  int(dfChampion["pentaKills"].sum()),
+        },
+        "pings": {
+            "total":          int(dfChampion[PINGS_LIST].sum().sum()),
+            "avg_per_game":   round(dfChampion[PINGS_LIST].sum(axis=1).mean(), 1),
         },
     }
 

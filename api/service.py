@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
-
+ 
 from .client import get_latest_patch, get_champion_classes, summoner_info
 from .parser import collect_player_matches, convert_to_dataframe, ROUTING_TO_PLATFORM, MAX_MATCHES
 from .analytics import (
     analyze_general_results,
     analyze_most_played_champion,
-    analyze_monthly_evolution,
+    analyze_daily_evolution,
     analyze_lane_stats,
     analyze_time_patterns,
     analyze_class_stats,
@@ -13,20 +13,19 @@ from .analytics import (
     analyze_match_history,
 )
 
-
 def _build_result(matches_raw: list, name: str, tag: str, region: str, patch: str) -> dict:
     """
     Transforma a lista bruta de partidas no payload completo para o frontend.
     Reutilizado tanto na busca completa quanto no update incremental.
     """
     df = convert_to_dataframe(matches_raw)
-
+ 
     class_map    = get_champion_classes(patch)
     df["classTag"] = df["championName"].map(class_map).fillna("Unknown")
-
+ 
     general  = analyze_general_results(df)
     champion = analyze_most_played_champion(df)
-
+ 
     return {
         "player_info": {"name": name, "tag": tag, "region": region},
         "geral_matchs":     general,
@@ -34,14 +33,13 @@ def _build_result(matches_raw: list, name: str, tag: str, region: str, patch: st
         "champion_img":     f"https://ddragon.leagueoflegends.com/cdn/{patch}/img/champion/{champion['champion']}.png",
         "match_history":    analyze_match_history(df, patch),
         "charts": {
-            "monthly":    analyze_monthly_evolution(df),
+            "daily":      analyze_daily_evolution(df),
             "lanes":      analyze_lane_stats(df),
             "time":       analyze_time_patterns(df),
             "classes":    analyze_class_stats(df),
             "game_modes": analyze_game_modes(df),
         },
     }
-
 
 def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> dict:
     """
