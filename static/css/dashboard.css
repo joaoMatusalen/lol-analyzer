@@ -137,7 +137,6 @@ body::before {
     padding: 7px 10px;
     outline: none;
     cursor: pointer;
-    width: 70px;
 }
 
 .header-search-btn {
@@ -1226,7 +1225,6 @@ body::before {
     color: var(--text-soft);
 }
 
-.match-deaths  { color: rgba(255, 99, 99, 0.9); }
 .kda-legendary { color: var(--gold-light); }
 .kda-good      { color: rgba(80, 220, 140, 0.9); }
 .kda-bad       { color: rgba(255, 99, 99, 0.7); }

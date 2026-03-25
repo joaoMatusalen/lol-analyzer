@@ -6,17 +6,21 @@ from .client import account_info, fetch_match_ids, fetch_match_info
 # ── Constantes ────────────────────────────────────────────────────
 
 ROUTING_TO_PLATFORM = {
-    "americas": "br1",
-    "europe":   "euw1",
-    "asia":     "kr",
-    "sea":      "sg2",
-    "na":       "na1",
-    "la1":      "la1",
-    "la2":      "la2",
-    "oce":      "oc1",
-    "ru":       "ru",
-    "tr":       "tr1",
-    "jp":       "jp1",
+"NA1" : "americas",
+"BR1" : "americas",
+"LA1" : "americas",
+"LA2" : "europe",
+"EUW1" : "europe",
+"EUN1" : "europe", 
+"TR1" : "europe", 
+"RU" :  "europe", 
+"ME1" : "europe", 
+"KR" :  "asia",
+"JP1" : "asia",
+"OC1" : "asia",
+"SG2" : "asia",
+"TW2" : "asia",
+"VN2" : "asia",
 }
 
 MAX_MATCHES = 20

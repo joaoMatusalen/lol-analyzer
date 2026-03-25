@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from collections import defaultdict
  
 from .client import get_latest_patch, get_champion_classes, summoner_info
 from .parser import collect_player_matches, convert_to_dataframe, ROUTING_TO_PLATFORM, MAX_MATCHES
@@ -67,11 +68,21 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
     if on_progress:
         on_progress("processing", "Processando estatisticas...", 0, 0)
 
-    # Find platform for summoner V4
-    platform        = ROUTING_TO_PLATFORM.get(region, "br1")
+        # Find platform for summoner V4
+    
+    platform = defaultdict(list)
 
-    summoner        = summoner_info(platform, puuid)
-    profile_icon_id = summoner.get("profileIconId", 1) if summoner else 1
+    for k, v in ROUTING_TO_PLATFORM.items():
+        platform[v].append(k)
+
+    for platform_summoner in platform[region]:
+        summoner = summoner_info(platform_summoner, puuid)
+
+        if summoner != {}:
+            profile_icon_id = summoner.get("profileIconId", 1)
+            break
+        else:
+            profile_icon_id = 1
 
     result = _build_result(matches, name, tag, region, patch)
     result["player_icon_img"] = (
@@ -119,13 +130,29 @@ def get_player_analysis_incremental(
         if on_progress:
             on_progress("collecting", "Buscando novas partidas...", current, total)
 
-    _, last_match_id, new_matches = collect_player_matches(
+    puuid, last_match_id, new_matches = collect_player_matches(
         region, name, tag, after_match_id=latest_match_id_cache, on_progress=_prog
     )
 
     if not new_matches:
         print(f"[INCREMENTAL] Sem partidas novas para {name}#{tag}.")
         return None
+    
+    # Find platform for summoner V4
+    
+    platform = defaultdict(list)
+
+    for k, v in ROUTING_TO_PLATFORM.items():
+        platform[v].append(k)
+
+    for platform_summoner in platform[region]:
+        summoner = summoner_info(platform_summoner, puuid)
+
+        if summoner != {}:
+            profile_icon_id = summoner.get("profileIconId", 1)
+            break
+        else:
+            profile_icon_id = 1
 
     if on_progress:
         on_progress("processing", "Processando estatisticas...", 0, 0)
