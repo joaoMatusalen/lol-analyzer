@@ -1,4 +1,4 @@
-import { initI18n } from './i18n.js';
+import { initI18n, translateError } from './i18n.js';
 import { initTooltip, bindSection } from './ui.js';
 import { buildCharts } from './charts.js';
 import { buildMatchHistory } from './history.js';
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     body:    JSON.stringify({ playerName: name, playerTag: tag, region }),
                 });
                 const init = await resp.json();
-                if (init.error) { showError(init.error); return; }
+                if (init.error) { showError(translateError(init.error)); return; }
 
                 const result = await _pollJob(init.job_id);
                 localStorage.setItem("analysisData", JSON.stringify(result));
@@ -151,8 +151,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             localStorage.setItem("analysisData", JSON.stringify(job.result));
                             setTimeout(() => window.location.reload(), 50);
                         } else if (job.status === "error") {
-                            clearInterval(pollInterval);
-                            showError(job.error);
+                                clearInterval(pollInterval);
+                                showError(translateError(job.error));
                             updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
                         }
                     } catch {

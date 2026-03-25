@@ -1,4 +1,4 @@
-import { initI18n } from './i18n.js';
+import { initI18n, translateError } from './i18n.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     initI18n();
@@ -82,11 +82,11 @@ async function pollJob(jobId) {
                 showProgress(data.step, data.current, data.total);
 
                 if (data.status === "done")  { clearInterval(interval); resolve(data.result); }
-                else if (data.status === "error") { clearInterval(interval); reject(new Error(data.error || "Erro.")); }
+                else if (data.status === "error") { clearInterval(interval); reject(new Error(translateError(data.error)));}
             } catch (err) { clearInterval(interval); reject(err); }
         }, 1500);
     });
-}
+}   
 
 // ── Form submit ───────────────────────────────────────────────────
 

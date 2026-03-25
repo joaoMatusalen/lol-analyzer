@@ -1,10 +1,13 @@
 import uuid
 import threading
+import logging
 from datetime import datetime, timezone, timedelta
 
 from flask_caching import Cache
 
 from api import get_player_analysis, get_player_analysis_incremental
+
+logger = logging.getLogger(__name__)
 
 # ── Job store ─────────────────────────────────────────────────────
 
@@ -82,14 +85,14 @@ def run_analysis(job_id: str, name: str, tag: str, region: str, force: bool, cac
     try:
         # Cache fresco
         if cached and not force and not _is_stale(cached["timestamp"]):
-            print(f"[CACHE HIT] {name}#{tag}")
+            logger.info(f"[CACHE HIT] {name}#{tag}")
             _finish(cached["result"])
             return
 
         # Cache stale ou force
         if cached:
             action = "FORCE" if force else "STALE"
-            print(f"[CACHE {action}] {name}#{tag}")
+            logger.info(f"[CACHE {action}] {name}#{tag}")
 
             updated = get_player_analysis_incremental(
                 name            = name,
@@ -114,7 +117,7 @@ def run_analysis(job_id: str, name: str, tag: str, region: str, force: bool, cac
             return
 
         # Busca completa
-        print(f"[CACHE MISS] {name}#{tag}")
+        logger.info(f"[CACHE MISS] {name}#{tag}")
         payload = get_player_analysis(name, tag, region, on_progress=on_progress)
         cache.set(cache_key, payload)
         _finish(payload["result"])
@@ -122,8 +125,8 @@ def run_analysis(job_id: str, name: str, tag: str, region: str, force: bool, cac
     except ValueError as e:
         _fail(str(e))
     except Exception as e:
-        print(f"[JOB ERROR] {job_id}: {e}")
-        _fail("Erro interno no servidor. Tente novamente.")
+        logger.warning(f"[JOB ERROR] {job_id}: {e}")
+        _fail("error.internal")
 
 
 def start_job(name: str, tag: str, region: str, force: bool, cache: Cache) -> str:

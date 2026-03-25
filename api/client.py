@@ -1,12 +1,13 @@
 import time
 import os
+import logging
 import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
 _token = os.getenv("RIOT_API")
-
+logger = logging.getLogger(__name__)
 
 def _headers() -> dict:
     return {"X-Riot-Token": _token}
@@ -18,12 +19,12 @@ def try_request_api(url: str, params: dict = None) -> dict:
         resp = requests.get(url, headers=_headers(), params=params, timeout=10)
         if resp.status_code == 429:
             retry_after = int(resp.headers.get("Retry-After", 121))
-            print(f"Rate limit. Aguardando {retry_after}s...")
+            logger.info(f"Rate limit. Aguardando {retry_after}s...")
             time.sleep(retry_after)
         elif resp.status_code == 200:
             return resp.json()
         else:
-            print(f"Erro {resp.status_code}: {resp.text}")
+            logger.warning(f"Erro {resp.status_code}: {resp.text}")
             return {}
     return {}
 

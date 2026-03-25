@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from collections import defaultdict
  
@@ -13,6 +14,8 @@ from .analytics import (
     analyze_game_modes,
     analyze_match_history,
 )
+
+logger = logging.getLogger(__name__)
 
 def _build_result(matches_raw: list, name: str, tag: str, region: str, patch: str) -> dict:
     """
@@ -47,7 +50,7 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
     Busca completa do zero. Coleta até MAX_MATCHES partidas.
     on_progress(step, message, current, total): callback opcional de progresso.
     """
-    print(f"[FULL] {name}#{tag}")
+    logger.info(f"[FULL] {name}#{tag}")
 
     if on_progress:
         on_progress("account", "Buscando conta...", 0, 0)
@@ -61,9 +64,9 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
     puuid, last_match_id, matches = collect_player_matches(region, name, tag, on_progress=_prog)
 
     if not matches:
-        raise ValueError(f"Nenhuma partida encontrada para {name}#{tag} na regiao {region}.")
+        raise ValueError("error.no_match")
     if not puuid:
-        raise ValueError(f"Nao foi possivel identificar {name}#{tag}.")
+        raise ValueError("error.account_not_found")
 
     if on_progress:
         on_progress("processing", "Processando estatisticas...", 0, 0)
@@ -119,7 +122,7 @@ def get_player_analysis_incremental(
     junta com o histórico em cache e reprocessa.
     Retorna None se não houver partidas novas.
     """
-    print(f"[INCREMENTAL] {name}#{tag} desde {latest_match_id_cache}")
+    logger.info(f"[INCREMENTAL] {name}#{tag} desde {latest_match_id_cache}")
 
     if on_progress:
         on_progress("account", "Verificando novas partidas...", 0, 0)
@@ -135,7 +138,7 @@ def get_player_analysis_incremental(
     )
 
     if not new_matches:
-        print(f"[INCREMENTAL] Sem partidas novas para {name}#{tag}.")
+        logger.info(f"[INCREMENTAL] Sem partidas novas para {name}#{tag}.")
         return None
     
     # Find platform for summoner V4

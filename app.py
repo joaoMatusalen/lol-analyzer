@@ -50,9 +50,9 @@ def analyze():
     force  = bool(body.get("force", False))
 
     if not name or not tag:
-        return jsonify({"error": "Nome e tag sao obrigatorios."}), 400
+        return jsonify({"error": "Nome e tag são obrigatorios."}), 400
     if region not in VALID_REGIONS:
-        return jsonify({"error": "Regiao invalida."}), 400
+        return jsonify({"error": "Região invalida."}), 400
 
     job_id = start_job(name, tag, region, force, cache)
     return jsonify({"job_id": job_id}), 202
@@ -62,7 +62,7 @@ def analyze():
 def status(job_id: str):
     job = get_job(job_id)
     if not job:
-        return jsonify({"error": "Job nao encontrado."}), 404
+        return jsonify({"error": "Job não encontrado."}), 404
 
     response = {
         "status":  job["status"],
@@ -80,7 +80,7 @@ def status(job_id: str):
 
 @app.errorhandler(429)
 def rate_limit_handler(e):
-    return jsonify({"error": "Muitas requisicoes. Aguarde e tente novamente."}), 429
+    return jsonify({"error": "Muitas requisições. Aguarde e tente novamente."}), 429
 
 
 if __name__ == "__main__":

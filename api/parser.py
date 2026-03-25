@@ -1,7 +1,10 @@
+import logging
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .client import account_info, fetch_match_ids, fetch_match_info
+
+logger = logging.getLogger(__name__)
 
 # ── Constantes ────────────────────────────────────────────────────
 
@@ -68,14 +71,14 @@ def _paginate_match_ids(region: str, puuid: str, after_match_id: str = None) -> 
             break
         start += batch
 
-    print(f"IDs coletados: {len(all_ids)}")
+    logger.info(f"IDs coletados: {len(all_ids)}")
     return all_ids
 
 
 def _parse_match(match_info: dict, puuid: str, match_id: str) -> dict | None:
     """Extrai os campos relevantes de uma partida para o jogador indicado pelo puuid."""
     if not match_info or "info" not in match_info:
-        print(f"Dados ausentes: {match_id}")
+        logger.warning(f"Dados ausentes: {match_id}")
         return None
 
     player = next(
@@ -83,7 +86,7 @@ def _parse_match(match_info: dict, puuid: str, match_id: str) -> dict | None:
         None,
     )
     if player is None:
-        print(f"Jogador ausente: {match_id}")
+        logger.warning(f"Jogador ausente: {match_id}")
         return None
 
     game_mode  = match_info["info"]["gameMode"]
@@ -164,7 +167,7 @@ def _fetch_parallel(region: str, match_ids: list, puuid: str, on_progress=None) 
             try:
                 parsed = _parse_match(future.result(), puuid, match_id)
             except Exception as e:
-                print(f"Erro ao parsear {match_id}: {e}")
+                logger.warning(f"Erro ao parsear {match_id}: {e}")
                 parsed = None
             if parsed:
                 matches.append(parsed)
@@ -182,15 +185,15 @@ def collect_player_matches(
     tag: str,
     after_match_id: str = None,
     on_progress=None,
-) -> tuple[str | None, list]:
+) -> {str | None, str | None, list}:
     """
     Coleta dados de partidas de um jogador.
     Se after_match_id for informado, busca apenas partidas mais recentes (incremental).
     """
     account = account_info(region, name, tag)
     if not account or "puuid" not in account:
-        print("Conta não encontrada.")
-        return None, []
+        logger.warning("Conta não encontrada.")
+        return None, None, []
 
     puuid     = account["puuid"]
     match_ids = _paginate_match_ids(region, puuid, after_match_id=after_match_id)
