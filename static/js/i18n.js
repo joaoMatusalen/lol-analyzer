@@ -7,7 +7,26 @@
 
 const I18N_KEY = "lolanalyzer_lang";
 
-function setLanguage(lang) {
+const ERROR_STRINGS = {
+    pt: {
+        "error.no_match":       "Nenhuma partida encontrada. Verifique se a região está correta.",
+        "error.account_not_found":"Conta não encontrada. Verifique o nome e a tag.",
+        "error.internal":         "Erro interno no servidor. Tente novamente.",
+    },
+    en: {
+        "error.no_match":       "No matches found. Please check if the region is correct.",
+        "error.account_not_found":"Account not found. Please check the name and tag.",
+        "error.internal":         "Internal server error. Please try again.",
+    },
+};
+
+export function translateError(key) {
+    const lang   = getCurrentLang();
+    const strings = ERROR_STRINGS[lang] || ERROR_STRINGS.pt;
+    return strings[key] || key; // fallback: mostra a chave se não encontrar
+}
+
+export function setLanguage(lang) {
     const previous = localStorage.getItem(I18N_KEY);
     localStorage.setItem(I18N_KEY, lang);
     document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
@@ -41,11 +60,11 @@ function setLanguage(lang) {
     }
 }
 
-function getCurrentLang() {
+export function getCurrentLang() {
     return localStorage.getItem(I18N_KEY) || "pt";
 }
 
-function initI18n() {
+export function initI18n() {
     const globeBtn = document.getElementById("langGlobeBtn");
     const dropdown = document.getElementById("langDropdown");
 
@@ -71,5 +90,3 @@ function initI18n() {
     // Aplica o idioma salvo
     setLanguage(getCurrentLang());
 }
-
-document.addEventListener("DOMContentLoaded", initI18n);

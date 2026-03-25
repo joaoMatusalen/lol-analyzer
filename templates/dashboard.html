@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <script src="../static/js/i18n.js" defer></script>
-    <script src="../static/js/dashboard.js" defer></script>
+    <script src="../static/js/i18n.js"       type="module"></script>
+    <script src="../static/js/dashboard.js"  type="module"></script>
 </head>
 <body>
     <div class="container">
@@ -30,10 +30,9 @@
                                 <span class="header-search-sep">#</span>
                                 <input type="text" id="header-playerTag" data-pt-placeholder="Tag" data-en-placeholder="Tag" placeholder="Tag" required>
                                 <select id="header-region" required>
-                                    <option value="americas">BR</option>
-                                    <option value="americas">NA</option>
-                                    <option value="europe">EUW</option>
-                                    <option value="asia">KR</option>
+                                    <option value="americas">Americas</option>
+                                    <option value="europe">Europe</option>
+                                    <option value="asia">Asia</option>
                                 </select>
                                 <button type="submit" class="header-search-btn">
                                     <i class="fas fa-search"></i>
@@ -59,6 +58,12 @@
             <p class="dashboard-banner-eyebrow"><i class="fas fa-map-marked-alt"></i> <span data-pt="Sua Jornada no League of Legends" data-en="Your League of Legends Journey">Sua Jornada no League of Legends</span></p>
             <h2 class="dashboard-banner-title"><span data-pt="Bem-vindo ao seu Dashboard, " data-en="Welcome to your Dashboard, ">Bem-vindo ao seu Dashboard, </span><span data-pt="Invocador" data-en="Summoner">Invocador</span></h2>
             <p class="dashboard-banner-sub" data-pt="Acompanhe sua evolução, identifique padrões e melhore sua performance partida a partida." data-en="Track your evolution, identify patterns and improve your performance match by match.">Acompanhe sua evolução, identifique padrões e melhore sua performance partida a partida.</p>
+            <div class="banner-update-wrap">
+                <button class="banner-update-btn" id="updateBtn">
+                    <i class="fas fa-sync-alt"></i> Update
+                </button>
+                <span class="banner-update-timer" id="updateTimer" style="display:none;"></span>
+            </div>
         </div>
 
         <!-- ═══════════════════════════════════════════
@@ -79,7 +84,7 @@
             <div class="champion-hero player-hero">
                 <div class="champion-hero-image-wrap">
                     <div class="champion-img-glow"></div>
-                    <img class="champion-hero-img" id="player-icon-img" src="" alt="Player Icon">
+                    <img class="champion-hero-img" id="player-icon-img" alt="Player Icon">
                     <div class="champion-img-border"></div>
                 </div>
                 <div class="champion-hero-info">
@@ -195,7 +200,7 @@
                 </div>
 
                 <div class="kpi-card wide-card" style="--delay: 0.50s">
-                    <div class="card-header"><i class="fas fa-star"></i><h3>Multikills</h3></div>
+                    <div class="card-header"><i class="fas fa-star"></i><h3 data-pt="Multikills" data-en="Multikills">Multikills</h3></div>
                     <div class="multikill-display">
                         <div class="multikill-item">
                             <span class="multikill-label" data-pt="Double" data-en="Double">Double</span>
@@ -226,37 +231,37 @@
                             <img class="objective-icon-img" src="../static/img/objectives/tower.png" alt="Torre">
                             <span class="objective-label" data-pt="Torres" data-en="Towers">Torres</span>
                             <span class="objective-total" id="total-towers">0</span>
-                            <span class="objective-avg">(<span id="avg-towers">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-towers">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                         <div class="objective-item">
                             <img class="objective-icon-img" src="../static/img/objectives/inhibitor.png" alt="Inibidor">
                             <span class="objective-label" data-pt="Inibidores" data-en="Inhibitors">Inibidores</span>
                             <span class="objective-total" id="total-inhibitors">0</span>
-                            <span class="objective-avg">(<span id="avg-inhibitors">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-inhibitors">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                         <div class="objective-item">
                             <img class="objective-icon-img" src="../static/img/objectives/baron.png" alt="Baron">
                             <span class="objective-label" data-pt="Baron" data-en="Baron">Baron</span>
                             <span class="objective-total" id="total-barons">0</span>
-                            <span class="objective-avg">(<span id="avg-barons">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-barons">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                         <div class="objective-item">
                             <img class="objective-icon-img" src="../static/img/objectives/herald.png" alt="Arauto">
                             <span class="objective-label" data-pt="Arauto" data-en="Rift Herald">Arauto</span>
                             <span class="objective-total" id="total-rift-heralds">0</span>
-                            <span class="objective-avg">(<span id="avg-rift-heralds">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-rift-heralds">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                         <div class="objective-item">
                             <img class="objective-icon-img" src="../static/img/objectives/grub.png" alt="Vastilarvas">
                             <span class="objective-label" data-pt="Vastilarvas" data-en="Void Grubs">Vastilarvas</span>
                             <span class="objective-total" id="total-horde">0</span>
-                            <span class="objective-avg">(<span id="avg-horde">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-horde">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                         <div class="objective-item">
                             <img class="objective-icon-img" src="../static/img/objectives/dragon.png" alt="Dragão">
                             <span class="objective-label" data-pt="Dragões" data-en="Dragons">Dragões</span>
                             <span class="objective-total" id="total-dragons">0</span>
-                            <span class="objective-avg">(<span id="avg-dragons">0</span>/jogo)</span>
+                            <span class="objective-avg">(<span id="avg-dragons">0</span><span data-pt="/jogo" data-en="/game">/jogo</span>)</span>
                         </div>
                     </div>
                 </div>
@@ -299,7 +304,7 @@
             <div class="champion-hero">
                 <div class="champion-hero-image-wrap">
                     <div class="champion-img-glow"></div>
-                    <img class="champion-hero-img" id="champion-img" src="" alt="Champion">
+                    <img class="champion-hero-img" id="champion-img" alt="Champion">
                     <div class="champion-img-border"></div>
                 </div>
                 <div class="champion-hero-info">
@@ -406,7 +411,7 @@
                 </div>
 
                 <div class="kpi-card kpi-card--champion wide-card" style="--delay: 0.50s">
-                    <div class="card-header"><i class="fas fa-star"></i><h3>Multikills</h3></div>
+                    <div class="card-header"><i class="fas fa-star"></i><h3 data-pt="Multikills" data-en="Multikills">Multikills</h3></div>
                     <div class="multikill-display">
                         <div class="multikill-item">
                             <span class="multikill-label" data-pt="Double" data-en="Double">Double</span>
@@ -431,34 +436,35 @@
         </section>
 
         <!-- ═══════════════════════════════════════════
-             SEÇÃO 3 — EVOLUÇÃO MENSAL
+             SEÇÃO 3 — EVOLUÇÃO DIÁRIA
         ════════════════════════════════════════════ -->
-        <section class="dashboard-section" id="section-monthly">
+
+        <section class="dashboard-section" id="section-daily">
             <div class="section-label">
-                <span class="section-badge"><i class="fas fa-calendar-alt"></i> <span data-pt="Evolução Mensal" data-en="Monthly Evolution">Evolução Mensal</span></span>
+                <span class="section-badge"><i class="fas fa-calendar-day"></i> <span data-pt="Evolução Diária" data-en="Daily Evolution">Evolução Diária</span></span>
                 <div class="section-line"></div>
             </div>
             <div class="section-header">
-                <h2 data-pt="Progresso ao Longo do Tempo" data-en="Progress Over Time">Progresso ao Longo do Tempo</h2>
-                <p class="subtitle" data-pt="Médias mensais das suas principais métricas" data-en="Monthly averages of your key metrics">Médias mensais das suas principais métricas</p>
+                <h2 data-pt="Evolução por Dia" data-en="Daily Progress">Evolução por Dia</h2>
+                <p class="subtitle" data-pt="Médias diárias das suas principais métricas" data-en="Daily averages of your key metrics">Médias diárias das suas principais métricas</p>
             </div>
-
-            <div class="chart-tabs" id="monthly-tabs">
-                <button class="chart-tab active" data-chart="monthly-kills" data-pt="Kills" data-en="Kills">Kills</button>
-                <button class="chart-tab" data-chart="monthly-deaths" data-pt="Mortes" data-en="Deaths">Mortes</button>
-                <button class="chart-tab" data-chart="monthly-assists" data-pt="Assistências" data-en="Assists">Assistências</button>
-                <button class="chart-tab" data-chart="monthly-gold" data-pt="Gold" data-en="Gold">Gold</button>
-                <button class="chart-tab" data-chart="monthly-damage" data-pt="Dano" data-en="Damage">Dano</button>
-                <button class="chart-tab" data-chart="monthly-winrate" data-pt="Winrate" data-en="Win Rate">Winrate</button>
+ 
+            <div class="chart-tabs" id="daily-tabs">
+                <button class="chart-tab active" data-chart="daily-kills" data-pt="Kills" data-en="Kills">Kills</button>
+                <button class="chart-tab" data-chart="daily-deaths" data-pt="Mortes" data-en="Deaths">Mortes</button>
+                <button class="chart-tab" data-chart="daily-assists" data-pt="Assistências" data-en="Assists">Assistências</button>
+                <button class="chart-tab" data-chart="daily-gold" data-pt="Gold" data-en="Gold">Gold</button>
+                <button class="chart-tab" data-chart="daily-damage" data-pt="Dano" data-en="Damage">Dano</button>
+                <button class="chart-tab" data-chart="daily-winrate" data-pt="Winrate" data-en="Win Rate">Winrate</button>
             </div>
-
+ 
             <div class="chart-card">
-                <canvas id="monthly-kills"   class="chart-canvas active-chart"></canvas>
-                <canvas id="monthly-deaths"  class="chart-canvas"></canvas>
-                <canvas id="monthly-assists" class="chart-canvas"></canvas>
-                <canvas id="monthly-gold"    class="chart-canvas"></canvas>
-                <canvas id="monthly-damage"  class="chart-canvas"></canvas>
-                <canvas id="monthly-winrate" class="chart-canvas"></canvas>
+                <canvas id="daily-kills"   class="chart-canvas active-chart"></canvas>
+                <canvas id="daily-deaths"  class="chart-canvas"></canvas>
+                <canvas id="daily-assists" class="chart-canvas"></canvas>
+                <canvas id="daily-gold"    class="chart-canvas"></canvas>
+                <canvas id="daily-damage"  class="chart-canvas"></canvas>
+                <canvas id="daily-winrate" class="chart-canvas"></canvas>
             </div>
         </section>
 
@@ -565,6 +571,21 @@
                 <p class="chart-label" data-pt="Winrate por Modo de Jogo" data-en="Win Rate by Game Mode">Winrate por Modo de Jogo</p>
                 <canvas id="game-modes-winrate" class="chart-canvas active-chart"></canvas>
             </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════
+             SEÇÃO 8 — HISTÓRICO DE PARTIDAS
+        ════════════════════════════════════════════ -->
+        <section class="dashboard-section" id="section-history">
+            <div class="section-label">
+                <span class="section-badge"><i class="fas fa-history"></i> <span data-pt="Histórico" data-en="History">Histórico</span></span>
+                <div class="section-line"></div>
+            </div>
+            <div class="section-header">
+                <h2 data-pt="Últimas Partidas" data-en="Recent Matches">Últimas Partidas</h2>
+                <p class="subtitle" data-pt="Resultado detalhado das suas partidas mais recentes" data-en="Detailed results of your most recent matches">Resultado detalhado das suas partidas mais recentes</p>
+            </div>
+            <div class="match-history-list" id="match-history-list"></div>
         </section>
 
         <!-- Footer -->
