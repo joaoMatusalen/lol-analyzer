@@ -20,10 +20,33 @@ const ERROR_STRINGS = {
     },
 };
 
+const PROGRESS_STRINGS = {
+    pt: {
+        "progress.starting":   "Iniciando...",
+        "progress.account":    "Buscando conta...",
+        "progress.collecting": "Analisando partidas...",
+        "progress.processing": "Processando estatísticas...",
+        "progress.done":       "Concluído!",
+    },
+    en: {
+        "progress.starting":   "Starting...",
+        "progress.account":    "Fetching account...",
+        "progress.collecting": "Analyzing matches...",
+        "progress.processing": "Processing statistics...",
+        "progress.done":       "Done!",
+    },
+};
+
 export function translateError(key) {
     const lang   = getCurrentLang();
     const strings = ERROR_STRINGS[lang] || ERROR_STRINGS.pt;
     return strings[key] || key; // fallback: mostra a chave se não encontrar
+}
+
+export function translateProgress(key) {
+    const lang    = getCurrentLang();
+    const strings = PROGRESS_STRINGS[lang] || PROGRESS_STRINGS.pt;
+    return strings[key] || key;
 }
 
 export function setLanguage(lang) {

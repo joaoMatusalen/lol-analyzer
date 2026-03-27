@@ -6,5 +6,4 @@
 *.pyc
 *.env
 CLAUDE.md
-*.png
 *.cache

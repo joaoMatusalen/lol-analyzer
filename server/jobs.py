@@ -20,7 +20,7 @@ def new_job() -> str:
     with _lock:
         _jobs[job_id] = {
             "status":      "pending",
-            "step":        "Iniciando...",
+            "step":        "progress.starting",
             "current":     0,
             "total":       0,
             "result":      None,

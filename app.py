@@ -44,9 +44,12 @@ def analyze():
 
     body   = request.get_json(silent=True) or {}
     name   = str(body.get("playerName", "")).strip()[:16]
-    tag    = str(body.get("playerTag",  "")).strip()[:6]
+    tag    = str(body.get("playerTag",  "")).strip()[:7]
     region = str(body.get("region",     "")).strip().lower()
     force  = bool(body.get("force", False))
+
+    if tag.startswith('#'):
+        tag = tag[1:]   
 
     if not name or not tag:
         return jsonify({"error": "Nome e tag são obrigatorios."}), 400

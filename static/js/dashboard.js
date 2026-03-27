@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const updateBtn  = document.getElementById("updateBtn");
     const timerLabel = document.getElementById("updateTimer");
     const COOLDOWN_KEY = "lolanalyzer_update_cooldown";
-    const COOLDOWN_MS  =  0 // 2 * 60 * 1000;
+    const COOLDOWN_MS  =  2 * 60 * 1000;
 
     if (updateBtn && data.player_info) {
         let countdownInterval = null;

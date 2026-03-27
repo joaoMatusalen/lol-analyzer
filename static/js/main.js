@@ -1,4 +1,4 @@
-import { initI18n, translateError } from './i18n.js';
+import { initI18n, translateError, translateProgress } from './i18n.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     initI18n();
@@ -79,7 +79,7 @@ async function pollJob(jobId) {
                 const resp = await fetch(`/status/${jobId}`);
                 const data = await resp.json();
 
-                showProgress(data.step, data.current, data.total);
+                showProgress(translateProgress(data.step), data.current, data.total);
 
                 if (data.status === "done")  { clearInterval(interval); resolve(data.result); }
                 else if (data.status === "error") { clearInterval(interval); reject(new Error(translateError(data.error)));}
@@ -101,7 +101,7 @@ document.getElementById("playerForm").addEventListener("submit", async e => {
     if (!playerName || !playerTag || !region) return;
 
     btn.disabled = true;
-    showProgress("Iniciando...", 0, 0);
+    showProgress(translateProgress("progress.starting"), 0, 0);
 
     try {
         const resp = await fetch("/analyze", {

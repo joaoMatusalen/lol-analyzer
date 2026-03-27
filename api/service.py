@@ -53,13 +53,13 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
     logger.info(f"[FULL] {name}#{tag}")
 
     if on_progress:
-        on_progress("account", "Buscando conta...", 0, 0)
+        on_progress("account", "progress.account", 0, 0)
 
     patch = get_latest_patch()
 
     def _prog(current, total):
         if on_progress:
-            on_progress("collecting", "Analisando partidas...", current, total)
+            on_progress("collecting", "progress.collecting", current, total)
 
     puuid, last_match_id, matches = collect_player_matches(region, name, tag, on_progress=_prog)
 
@@ -69,7 +69,7 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
         raise ValueError("error.account_not_found")
 
     if on_progress:
-        on_progress("processing", "Processando estatisticas...", 0, 0)
+        on_progress("processing", "progress.processing", 0, 0)
 
         # Find platform for summoner V4
     
@@ -93,7 +93,7 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
     )
 
     if on_progress:
-        on_progress("done", "Concluido!", 0, 0)
+        on_progress("done", "progress.done", 0, 0)
 
     return {
         "result":          result,
@@ -131,7 +131,7 @@ def get_player_analysis_incremental(
 
     def _prog(current, total):
         if on_progress:
-            on_progress("collecting", "Buscando novas partidas...", current, total)
+            on_progress("collecting", "progress.newmatchs", current, total)
 
     puuid, last_match_id, new_matches = collect_player_matches(
         region, name, tag, after_match_id=latest_match_id_cache, on_progress=_prog
@@ -167,7 +167,7 @@ def get_player_analysis_incremental(
     )
 
     if on_progress:
-        on_progress("done", "Concluido!", 0, 0)
+        on_progress("done", "progress.done", 0, 0)
 
     return {
         "result":          result,
