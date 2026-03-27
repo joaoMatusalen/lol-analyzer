@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+.git
+venv/
+*.vscode
+*.json
+*.env
+CLAUDE.md
+*.cache

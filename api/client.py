@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-_token = os.getenv("RIOT_API")
+_token = os.environ.get("RIOT_API")
 logger = logging.getLogger(__name__)
 
 def _headers() -> dict:

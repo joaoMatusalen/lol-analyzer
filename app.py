@@ -1,17 +1,16 @@
-import os
 from flask import Flask, render_template, request, jsonify
 from flask_caching import Cache
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-from jobs import start_job, get_job, cleanup_old_jobs
+from server.jobs import start_job, get_job, cleanup_old_jobs
 
 # ── App setup ────────────────────────────────────────────────────
 
 app = Flask(__name__)
 
 app.config["CACHE_TYPE"]            = "FileSystemCache"
-app.config["CACHE_DIR"]             = os.path.join(os.path.dirname(__file__), ".cache")
+app.config["CACHE_DIR"]             = "/tmp/cache"
 app.config["CACHE_DEFAULT_TIMEOUT"] = 60 * 60 * 24 * 30   # 30 days
 app.config["CACHE_THRESHOLD"]       = 5000
 
@@ -81,7 +80,3 @@ def status(job_id: str):
 @app.errorhandler(429)
 def rate_limit_handler(e):
     return jsonify({"error": "Muitas requisições. Aguarde e tente novamente."}), 429
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
