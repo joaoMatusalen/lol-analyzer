@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timezone
 from collections import defaultdict
- 
+
 from .client import get_latest_patch, get_champion_classes, summoner_info
 from .parser import collect_player_matches, convert_to_dataframe, ROUTING_TO_PLATFORM, MAX_MATCHES
 from .analytics import (
@@ -17,23 +17,40 @@ from .analytics import (
 
 logger = logging.getLogger(__name__)
 
+
 def _build_result(matches_raw: list, name: str, tag: str, region: str, patch: str) -> dict:
     """
-    Transforma a lista bruta de partidas no payload completo para o frontend.
-    Reutilizado tanto na busca completa quanto no update incremental.
+    Transforms a raw list of match dicts into the full frontend payload.
+
+    Attaches champion class tags to the DataFrame before running analytics,
+    so that class-based charts can filter by champion type.
+    This function is shared between full and incremental analysis flows.
+
+    Args:
+        matches_raw: List of parsed match dicts from the parser layer.
+        name:        Player's Riot game name.
+        tag:         Player's Riot tag line.
+        region:      Routing region string.
+        patch:       Current game patch version (used for Data Dragon URLs).
+
+    Returns:
+        Dict with player_info, stats, chart data and match history,
+        ready to be serialised and sent to the frontend.
     """
     df = convert_to_dataframe(matches_raw)
- 
-    class_map    = get_champion_classes(patch)
+
+    # Enrich the DataFrame with champion class tags from Data Dragon
+    class_map      = get_champion_classes(patch)
     df["classTag"] = df["championName"].map(class_map).fillna("Unknown")
- 
+
     general  = analyze_general_results(df)
     champion = analyze_most_played_champion(df)
- 
+
     return {
-        "player_info": {"name": name, "tag": tag, "region": region},
+        "player_info":      {"name": name, "tag": tag, "region": region},
         "geral_matchs":     general,
         "champion_results": champion,
+        # Data Dragon URL for the most-played champion's square portrait
         "champion_img":     f"https://ddragon.leagueoflegends.com/cdn/{patch}/img/champion/{champion['champion']}.png",
         "match_history":    analyze_match_history(df, patch),
         "charts": {
@@ -45,10 +62,25 @@ def _build_result(matches_raw: list, name: str, tag: str, region: str, patch: st
         },
     }
 
+
 def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> dict:
     """
-    Busca completa do zero. Coleta até MAX_MATCHES partidas.
-    on_progress(step, message, current, total): callback opcional de progresso.
+    Performs a full analysis from scratch, fetching up to MAX_MATCHES matches.
+
+    Raises ValueError with an i18n key if the account is not found or
+    no matches are available.
+
+    Args:
+        name:        Riot game name.
+        tag:         Riot tag line.
+        region:      Routing region (e.g. "americas").
+        on_progress: Optional callable(step, message, current, total)
+                     for streaming progress updates to the job store.
+
+    Returns:
+        Dict containing the frontend result payload plus caching metadata:
+        result, matches_raw, latest_match_id_cache, timestamp, patch,
+        puuid and profile_icon_id.
     """
     logger.info(f"[FULL] {name}#{tag}")
 
@@ -71,21 +103,18 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
     if on_progress:
         on_progress("processing", "progress.processing", 0, 0)
 
-        # Find platform for summoner V4
-    
-    platform = defaultdict(list)
-
+    # Build a reverse mapping from routing region → list of platform codes
+    # so we can try each platform until Summoner v4 returns a valid response
+    platform_map = defaultdict(list)
     for k, v in ROUTING_TO_PLATFORM.items():
-        platform[v].append(k)
+        platform_map[v].append(k)
 
-    for platform_summoner in platform[region]:
-        summoner = summoner_info(platform_summoner, puuid)
-
-        if summoner != {}:
+    profile_icon_id = 1  # Default icon if all platform attempts fail
+    for platform_code in platform_map[region]:
+        summoner = summoner_info(platform_code, puuid)
+        if summoner:
             profile_icon_id = summoner.get("profileIconId", 1)
             break
-        else:
-            profile_icon_id = 1
 
     result = _build_result(matches, name, tag, region, patch)
     result["player_icon_img"] = (
@@ -96,13 +125,14 @@ def get_player_analysis(name: str, tag: str, region: str, on_progress=None) -> d
         on_progress("done", "progress.done", 0, 0)
 
     return {
-        "result":          result,
-        "matches_raw":     matches,
+        "result":                result,
+        "matches_raw":           matches,
+        # Used on the next incremental update to detect new matches
         "latest_match_id_cache": last_match_id,
-        "timestamp":       datetime.now(timezone.utc).isoformat(),
-        "patch":           patch,
-        "puuid":           puuid,
-        "profile_icon_id": profile_icon_id,
+        "timestamp":             datetime.now(timezone.utc).isoformat(),
+        "patch":                 patch,
+        "puuid":                 puuid,
+        "profile_icon_id":       profile_icon_id,
     }
 
 
@@ -118,15 +148,32 @@ def get_player_analysis_incremental(
     on_progress=None,
 ) -> dict | None:
     """
-    Update incremental: busca apenas partidas posteriores a latest_match_id_cache,
-    junta com o histórico em cache e reprocessa.
-    Retorna None se não houver partidas novas.
+    Incremental update: fetches only matches newer than latest_match_id_cache,
+    merges them with the cached match history and reprocesses all analytics.
+
+    Returns None if no new matches have been played since the last update,
+    allowing the caller to reuse the existing cached result.
+
+    Args:
+        name:                  Riot game name.
+        tag:                   Riot tag line.
+        region:                Routing region.
+        cached_matches:        Previously collected match dicts from cache.
+        latest_match_id_cache: Match ID of the most recent cached match.
+        patch:                 Patch version stored in cache (may be refreshed).
+        puuid_cached:          Cached player PUUID (returned unchanged).
+        profile_icon_id:       Cached profile icon ID (may be refreshed).
+        on_progress:           Optional callable(step, message, current, total).
+
+    Returns:
+        Full payload dict (same shape as get_player_analysis) or None.
     """
-    logger.info(f"[INCREMENTAL] {name}#{tag} desde {latest_match_id_cache}")
+    logger.info(f"[INCREMENTAL] {name}#{tag} since {latest_match_id_cache}")
 
     if on_progress:
-        on_progress("account", "Verificando novas partidas...", 0, 0)
+        on_progress("account", "Checking for new matches...", 0, 0)
 
+    # Always fetch the latest patch in case it changed since last cache write
     patch = get_latest_patch()
 
     def _prog(current, total):
@@ -138,28 +185,24 @@ def get_player_analysis_incremental(
     )
 
     if not new_matches:
-        logger.info(f"[INCREMENTAL] Sem partidas novas para {name}#{tag}.")
+        logger.info(f"[INCREMENTAL] No new matches for {name}#{tag}.")
         return None
-    
-    # Find platform for summoner V4
-    
-    platform = defaultdict(list)
 
+    # Refresh profile icon in case the player changed it
+    platform_map = defaultdict(list)
     for k, v in ROUTING_TO_PLATFORM.items():
-        platform[v].append(k)
+        platform_map[v].append(k)
 
-    for platform_summoner in platform[region]:
-        summoner = summoner_info(platform_summoner, puuid)
-
-        if summoner != {}:
+    for platform_code in platform_map[region]:
+        summoner = summoner_info(platform_code, puuid)
+        if summoner:
             profile_icon_id = summoner.get("profileIconId", 1)
             break
-        else:
-            profile_icon_id = 1
 
     if on_progress:
-        on_progress("processing", "Processando estatisticas...", 0, 0)
+        on_progress("processing", "Processing statistics...", 0, 0)
 
+    # Prepend new matches and cap the total at MAX_MATCHES
     all_matches = (new_matches + cached_matches)[:MAX_MATCHES]
     result      = _build_result(all_matches, name, tag, region, patch)
     result["player_icon_img"] = (
@@ -170,11 +213,12 @@ def get_player_analysis_incremental(
         on_progress("done", "progress.done", 0, 0)
 
     return {
-        "result":          result,
-        "matches_raw":     all_matches,
+        "result":                result,
+        "matches_raw":           all_matches,
         "latest_match_id_cache": last_match_id,
-        "timestamp":       datetime.now(timezone.utc).isoformat(),
-        "patch":           patch,
-        "puuid":           puuid_cached,
-        "profile_icon_id": profile_icon_id,
+        "timestamp":             datetime.now(timezone.utc).isoformat(),
+        "patch":                 patch,
+        # Return the original cached PUUID — it never changes for the same account
+        "puuid":                 puuid_cached,
+        "profile_icon_id":       profile_icon_id,
     }

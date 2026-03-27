@@ -4,21 +4,30 @@ from datetime import timedelta
 from .parser import PINGS_LIST, LANE_MAP
 
 
-# ── Helper interno ────────────────────────────────────────────────
+# ── Internal helper ───────────────────────────────────────────────
 
 def _classic_only(df: pd.DataFrame) -> pd.DataFrame:
-    """Retorna apenas partidas do modo CLASSIC."""
+    """Returns only matches played in CLASSIC (Summoner's Rift) mode."""
     return df[df["gameMode"] == "CLASSIC"]
 
 
-# ── Análises gerais ───────────────────────────────────────────────
+# ── General analysis ──────────────────────────────────────────────
 
 def analyze_general_results(df: pd.DataFrame) -> dict:
+    """
+    Computes aggregate statistics across all matches for a player.
 
+    Farm, vision and objectives are restricted to CLASSIC matches only,
+    since those metrics are not meaningful in other game modes (ARAM, Arena, etc.).
+
+    Returns a dict with the following top-level keys:
+        matchResult, sizePlayed, kda, economy, damage,
+        farm, vision, multikills, objectives, pings
+    """
     if df.empty:
         return {}
 
-    # Farm, visão e objetivos só fazem sentido em partidas CLASSIC
+    # Farm, vision and objectives only make sense in CLASSIC matches
     df_classic = _classic_only(df)
 
     farm_avg     = int(df_classic["totalMinionsKilled"].mean()) if not df_classic.empty else 0
@@ -51,9 +60,11 @@ def analyze_general_results(df: pd.DataFrame) -> dict:
         },
         "sizePlayed": {
             "total_matchs":      int(df["win"].count()),
+            # Human-readable total play time (e.g. "12:34:56")
             "total_time_played": str(timedelta(seconds=int(df["gameDuration"].sum()))),
         },
         "kda": {
+            # KDA formula: (kills + assists) / max(deaths, 1) to avoid division by zero
             "kda_ratio":     round((df["kills"].sum() + df["assists"].sum()) / max(df["deaths"].sum(), 1), 2),
             "total_kills":   int(df["kills"].sum()),
             "total_deaths":  int(df["deaths"].sum()),
@@ -85,6 +96,7 @@ def analyze_general_results(df: pd.DataFrame) -> dict:
             "penta":  int(df["pentaKills"].sum()),
         },
         "objectives": objectives,
+        # Individual ping type totals and per-game average
         "pings": {
             "total":          int(df[PINGS_LIST].sum().sum()),
             "avg_per_game":   round(df[PINGS_LIST].sum(axis=1).mean(), 1),
@@ -105,14 +117,22 @@ def analyze_general_results(df: pd.DataFrame) -> dict:
 
 
 def analyze_most_played_champion(df: pd.DataFrame) -> dict:
+    """
+    Returns detailed statistics for the player's most-played champion.
 
+    Uses the same structure as analyze_general_results but scoped
+    to matches where the most frequent champion was played.
+    Farm and vision are restricted to CLASSIC matches only.
+    """
     if df.empty:
         return {}
 
+    # Identify the champion with the highest match count
     champion = df["championName"].value_counts().idxmax()
-    dfChampion      = df[df["championName"] == champion]
+    dfChampion = df[df["championName"] == champion]
 
-    dfChampion_classic  = _classic_only(dfChampion)
+    # Filter for CLASSIC-only metrics
+    dfChampion_classic = _classic_only(dfChampion)
     farm_avg     = int(dfChampion_classic["totalMinionsKilled"].mean()) if not dfChampion_classic.empty else 0
     farm_total   = int(dfChampion_classic["totalMinionsKilled"].sum())  if not dfChampion_classic.empty else 0
     vision_avg   = int(dfChampion_classic["visionScore"].mean())        if not dfChampion_classic.empty else 0
@@ -161,19 +181,19 @@ def analyze_most_played_champion(df: pd.DataFrame) -> dict:
             "penta":  int(dfChampion["pentaKills"].sum()),
         },
         "pings": {
-            "total":          int(dfChampion[PINGS_LIST].sum().sum()),
-            "avg_per_game":   round(dfChampion[PINGS_LIST].sum(axis=1).mean(), 1),
+            "total":        int(dfChampion[PINGS_LIST].sum().sum()),
+            "avg_per_game": round(dfChampion[PINGS_LIST].sum(axis=1).mean(), 1),
         },
     }
 
 
-# ── Gráficos ──────────────────────────────────────────────────────
+# ── Chart data builders ───────────────────────────────────────────
 
 def analyze_daily_evolution(df: pd.DataFrame) -> dict:
     """
-    Evolução diária de performance — substitui a análise mensal.
-    Com ~100 partidas a granularidade por dia é muito mais útil e densa.
-    Farm, visão e gold filtram apenas partidas CLASSIC para médias corretas.
+    Builds daily performance evolution data for the charts.
+    
+    Returns a dict with labels (dates) and per-metric daily averages.
     """
     if df.empty:
         return {}
@@ -182,7 +202,7 @@ def analyze_daily_evolution(df: pd.DataFrame) -> dict:
     df["date"] = pd.to_datetime(df["gameCreation"], unit="ms")
     df["day"]  = df["date"].dt.date
 
-    # KDA, dano e winrate: todas as partidas
+    # Aggregate all-mode metrics by day
     g_all = df.groupby("day").agg(
         avg_kills   = ("kills",                       "mean"),
         avg_deaths  = ("deaths",                      "mean"),
@@ -192,7 +212,7 @@ def analyze_daily_evolution(df: pd.DataFrame) -> dict:
         games       = ("matchId",                      "count"),
     ).reset_index().sort_values("day")
 
-    # Farm, visão e gold: apenas CLASSIC
+    # Aggregate CLASSIC-only metrics by day and left-join onto all-mode data
     df_classic = _classic_only(df)
     if not df_classic.empty:
         df_classic = df_classic.copy()
@@ -202,6 +222,7 @@ def analyze_daily_evolution(df: pd.DataFrame) -> dict:
             avg_vision = ("visionScore",        "mean"),
             avg_gold   = ("goldEarned",         "mean"),
         ).reset_index()
+        # Days with no CLASSIC matches will have 0 for farm/vision/gold
         g_all = g_all.merge(g_classic, on="day", how="left").fillna(0)
     else:
         g_all["avg_farm"]   = 0
@@ -219,13 +240,21 @@ def analyze_daily_evolution(df: pd.DataFrame) -> dict:
         "avg_farm":    [round(v, 1) for v in g_all["avg_farm"]],
         "avg_vision":  [round(v, 1) for v in g_all["avg_vision"]],
         "avg_gold":    [round(v, 0) for v in g_all["avg_gold"]],
+        # Convert 0-1 mean to percentage for chart rendering
         "win_rate":    [round(v * 100, 1) for v in g_all["win_rate"]],
         "games":       [int(v) for v in g_all["games"]],
     }
 
 
 def analyze_lane_stats(df: pd.DataFrame) -> dict:
-    """Apenas partidas CLASSIC têm posição definida."""
+    """
+    Computes games played and win rate per lane position.
+
+    Restricted to CLASSIC matches because other modes have no defined positions.
+    Rows with position 'Outros' (unrecognized / none) are excluded.
+    Results are always returned in the canonical lane order:
+        Top, Jungle, Mid, Adc, Support
+    """
     df_classic = _classic_only(df)
 
     if df_classic.empty:
@@ -241,6 +270,7 @@ def analyze_lane_stats(df: pd.DataFrame) -> dict:
         wins  = ("win",     "sum"),
     ).reindex(lane_order, fill_value=0).reset_index()
 
+    # Avoid division by zero for lanes with no matches
     g["winrate"] = (g["wins"] / g["games"].replace(0, 1) * 100).round(1)
 
     return {
@@ -251,14 +281,22 @@ def analyze_lane_stats(df: pd.DataFrame) -> dict:
 
 
 def analyze_time_patterns(df: pd.DataFrame) -> dict:
+    """
+    Breaks down play patterns by weekday and by hour of day.
 
+    Weekday data includes hours played and win rate per day of the week.
+    Hourly data includes win rate for each hour block (00h–23h).
+    Day names are stored internally in Portuguese to match the frontend labels.
+    """
     if df.empty:
         return {}
 
     df = df.copy()
     df["date"] = pd.to_datetime(df["gameCreation"], unit="ms")
 
+    # Canonical weekday order used throughout the app
     day_order  = ["Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Domingo"]
+    # Map English day names (from pandas) to Portuguese abbreviations
     day_map_en = {
         "Monday": "Segunda", "Tuesday": "Terca", "Wednesday": "Quarta",
         "Thursday": "Quinta", "Friday": "Sexta", "Saturday": "Sabado", "Sunday": "Domingo",
@@ -274,6 +312,7 @@ def analyze_time_patterns(df: pd.DataFrame) -> dict:
     df_day["winrate"]      = (df_day["wins"] / df_day["games"].replace(0, 1) * 100).round(1)
     df_day["hours_played"] = (df_day["total_seconds"] / 3600).round(1)
 
+    # Group by hour-of-day block (0–23) and reindex to guarantee all 24 slots
     df["hour_block"] = df["date"].dt.hour
     df_hour = df.groupby("hour_block").agg(
         games = ("matchId", "count"),
@@ -297,7 +336,13 @@ def analyze_time_patterns(df: pd.DataFrame) -> dict:
 
 
 def analyze_class_stats(df: pd.DataFrame) -> dict:
+    """
+    Computes games played and win rate grouped by champion class tag.
 
+    The classTag column must be pre-populated by the service layer via Data Dragon.
+    Champions with an 'Unknown' tag (not found in the mapping) are excluded.
+    Results are always returned in the canonical class order.
+    """
     if df.empty:
         return {}
 
@@ -313,6 +358,7 @@ def analyze_class_stats(df: pd.DataFrame) -> dict:
     )
     g["winrate"] = (g["wins"] / g["games"].replace(0, 1) * 100).round(1)
 
+    # Reindex to guarantee all six classes appear even with 0 games
     full = g.set_index("classTag").reindex(CLASS_ORDER, fill_value=0).reset_index()
 
     return {
@@ -323,7 +369,13 @@ def analyze_class_stats(df: pd.DataFrame) -> dict:
 
 
 def analyze_game_modes(df: pd.DataFrame) -> dict:
+    """
+    Computes match count, percentage share and win rate per game mode.
 
+    Only the five known modes are tracked; any others are silently ignored
+    because they are not represented in the frontend labels.
+    Win rate is set to 0.0 for modes with no recorded matches.
+    """
     if df.empty:
         return {}
 
@@ -337,6 +389,7 @@ def analyze_game_modes(df: pd.DataFrame) -> dict:
 
     g["percentage"] = (g["games"] / total * 100).round(1)
     g["winrate"]    = (g["wins"] / g["games"].replace(0, 1) * 100).round(1)
+    # Ensure modes with no games show 0% win rate instead of a computed value
     g.loc[g["games"] == 0, "winrate"] = 0.0
 
     return {
@@ -348,10 +401,17 @@ def analyze_game_modes(df: pd.DataFrame) -> dict:
 
 
 def analyze_match_history(df: pd.DataFrame, patch: str) -> list:
+    """
+    Builds a list of recent match summaries for the match history panel.
 
+    Returns the 20 most recent matches sorted by date descending.
+    Champion portrait URLs are generated from Data Dragon using the current patch.
+    Duration is formatted as "Xm YYs" for display.
+    """
     if df.empty:
         return []
 
+    # Human-readable labels for each known game mode
     GAME_MODE_LABELS = {
         "CLASSIC":    "Summoner's Rift",
         "ARAM":       "ARAM",
@@ -371,16 +431,19 @@ def analyze_match_history(df: pd.DataFrame, patch: str) -> list:
         history.append({
             "matchId":      row["matchId"],
             "champion":     row["championName"],
+            # Data Dragon CDN URL for the champion's square portrait
             "champion_img": f"https://ddragon.leagueoflegends.com/cdn/{patch}/img/champion/{row['championName']}.png",
             "win":          bool(row["win"]),
             "kills":        k,
             "deaths":       d,
             "assists":      a,
+            # KDA ratio: clamp deaths at 1 to avoid division by zero
             "kda":          round((k + a) / max(d, 1), 2),
             "damage":       int(row["totalDamageDealtToChampions"]),
             "gold":         int(row["goldEarned"]),
             "cs":           int(row["totalMinionsKilled"]),
             "duration":     f"{ds // 60}m {ds % 60:02d}s",
+            # Fall back to raw mode key if not in the label map
             "gameMode":     GAME_MODE_LABELS.get(row["gameMode"], row["gameMode"]),
             "date":         row["date"].strftime("%d/%m/%Y"),
         })

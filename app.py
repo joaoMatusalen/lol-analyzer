@@ -83,3 +83,7 @@ def status(job_id: str):
 @app.errorhandler(429)
 def rate_limit_handler(e):
     return jsonify({"error": "Muitas requisições. Aguarde e tente novamente."}), 429
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
