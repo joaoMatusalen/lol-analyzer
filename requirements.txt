@@ -9,5 +9,5 @@ requests==2.32.5
 pandas==3.0.1
 scipy==1.17.0
 
-gunicorn
+gunicorn==25.1.0
 gevent>=24.10.1

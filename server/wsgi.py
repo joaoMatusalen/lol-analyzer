@@ -4,4 +4,4 @@ from app import app
 
 if __name__ == "__main__":
     # For local development only — use Gunicorn in production.
-    app.run()
+    app.run(debug=False)
