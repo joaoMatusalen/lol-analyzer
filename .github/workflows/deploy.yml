@@ -7,23 +7,17 @@ on:
 jobs:
   deploy:
     name: Deploy para Home Server
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: production
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            cd /home/${{ secrets.SERVER_USER }}/srv/lol-analyzer
-            git pull origin main
-            cd /home/${{ secrets.SERVER_USER }}/srv
-            docker compose up -d --build flask_app --no-deps
-            docker compose ps
+      - name: Deploy
+        run: |
+          cd $HOME/srv/lol-analyzer
+          git pull origin main
+          cd $HOME/srv
+          docker compose up -d --build flask_app --no-deps
+          docker compose ps
