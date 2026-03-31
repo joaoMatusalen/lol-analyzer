@@ -250,13 +250,12 @@ nav section {
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: 20px;
-    color: var(--gold); /* Solid fallback for browsers without gradient text support */
-    background: -webkit-linear-gradient(315deg, var(--gold), var(--gold-light));
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #F4E4BC;
+    background: none;
+    -webkit-text-fill-color: #F4E4BC;
 }
+
+
 
 .searchTitle-description {
     font-size: 1.1rem;
@@ -271,7 +270,7 @@ nav section {
    ============================================ */
 
 .search-form {
-    background: var(--glass-solid);
+    background: rgba(20, 35, 55, 0.95);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     padding: 40px;
@@ -403,28 +402,45 @@ nav section {
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 48px;
-    color: var(--gold);
-    background: -webkit-linear-gradient(315deg, var(--gold), var(--gold-light));
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #F4E4BC;
+    background: none;
+    -webkit-text-fill-color: #F4E4BC;
 }
 
+/* Gradient text only where it's reliably supported */
+
+
 .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
     gap: 20px;
+    /* Margin fallback for browsers without gap support in flex */
+    margin: -10px;
 }
 
 .feature-card {
-    background: var(--glass-solid);
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 1 280px;
+    -ms-flex: 1 1 280px;
+    flex: 1 1 280px;
+    /* Margin fallback */
+    margin: 10px;
+}
+
+.feature-card {
+    background: rgba(20, 35, 55, 0.95);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
     padding: 28px;
     text-align: center;
+    -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
                 background 0.25s ease,
                 border-color 0.25s ease,
@@ -493,11 +509,11 @@ nav section {
     grid-template-columns: 1.1fr 0.9fr;
     gap: 0;
     align-items: center;
-    background: var(--glass-solid);
+    background: rgba(20, 35, 55, 0.95);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
     overflow: hidden;
     box-shadow: var(--shadow-card);
 }
@@ -511,13 +527,12 @@ nav section {
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 24px;
-    color: var(--gold);
-    background: -webkit-linear-gradient(315deg, var(--gold), var(--gold-light));
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #F4E4BC;
+    background: none;
+    -webkit-text-fill-color: #F4E4BC;
 }
+
+
 
 .about-text p {
     font-size: 0.95rem;
@@ -674,7 +689,7 @@ nav section {
 @media (max-width: 480px) {
     .container { padding: 0 14px; }
     .logo h1   { font-size: 1.25rem; }
-    .features-grid { grid-template-columns: 1fr; }
+    .features-grid { display: block; } .feature-card { margin-bottom: 20px; }
 }
 
 /* ============================================
