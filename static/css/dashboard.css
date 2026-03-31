@@ -1,3 +1,4 @@
+html { color-scheme: only light; }
 /* ============================================
    BASE RESET & VARIABLES
    ============================================ */
@@ -8,6 +9,7 @@
 }
 
 :root {
+    color-scheme: only light;
     --gold:        #C9AA71;
     --gold-light:  #F4E4BC;
     --gold-dim:    rgba(201, 170, 113, 0.15);
