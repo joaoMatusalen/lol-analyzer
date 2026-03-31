@@ -30,6 +30,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background: #080E1A; /* Solid fallback */
+    background: -webkit-linear-gradient(290deg, #080E1A 0%, #0F2035 45%, #152840 100%);
     background: linear-gradient(160deg, #080E1A 0%, #0F2035 45%, #152840 100%);
     color: #ffffff;
     min-height: 100vh;
@@ -40,11 +41,17 @@ body {
 body::before {
     content: '';
     position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    top: 0; right: 0; bottom: 0; left: 0;
+    background-image: none;
     pointer-events: none;
     z-index: 0;
     opacity: 0.4;
+}
+
+@supports (filter: url(#x)) {
+    body::before {
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    }
 }
 
 .container {
@@ -431,6 +438,7 @@ body::before {
 .section-line {
     flex: 1;
     height: 1px;
+    background: -webkit-linear-gradient(left, var(--gold-border), transparent);
     background: linear-gradient(to right, var(--gold-border), transparent);
 }
 
@@ -443,6 +451,7 @@ body::before {
     font-size: 2rem;
     font-weight: 700;
     color: var(--gold);
+    background: -webkit-linear-gradient(315deg, var(--gold), var(--gold-light));
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -471,6 +480,7 @@ body::before {
     align-items: center;
     gap: 36px;
     background: #0F2035; /* Solid fallback */
+    background: -webkit-linear-gradient(315deg, rgba(201, 170, 113, 0.07) 0%, rgba(255, 255, 255, 0.03) 60%, rgba(201, 170, 113, 0.04) 100%);
     background: linear-gradient(135deg,
         rgba(201, 170, 113, 0.07) 0%,
         rgba(255, 255, 255, 0.03) 60%,
@@ -512,8 +522,10 @@ body::before {
 .champion-img-border {
     position: absolute;
     inset: -4px;
+    top: -4px; right: -4px; bottom: -4px; left: -4px; /* inset fallback */
     border-radius: 50%;
-    border: 2px solid transparent;
+    border: 2px solid rgba(201, 170, 113, 0.6);
+    /* Gradient border via mask - progressive enhancement */
     background: linear-gradient(135deg, var(--gold), transparent 60%) border-box;
     -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: source-out;
@@ -580,8 +592,7 @@ body::before {
 }
 
 .kpi-card {
-    background: var(--glass-solid); /* Robust fallback */
-    background: var(--glass);
+    background: var(--glass-solid);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border);
@@ -856,8 +867,7 @@ body::before {
    CHART SECTIONS
    ============================================ */
 .chart-card {
-    background: var(--glass-solid); /* Robust fallback */
-    background: var(--glass);
+    background: var(--glass-solid);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border);
@@ -1005,8 +1015,7 @@ body::before {
     grid-template-columns: 52px 1fr 80px 130px 160px 110px;
     align-items: center;
     gap: 16px;
-    background: var(--glass-solid); /* Robust fallback */
-    background: var(--glass);
+    background: var(--glass-solid);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: 14px 16px 14px 24px;
@@ -1340,4 +1349,20 @@ body::before {
     .value             { font-size: 1.75rem; }
     .champion-hero-img { width: 90px; height: 90px; }
     .champion-hero-name{ font-size: 1.5rem; }
+}
+
+/* ============================================
+   GLASS EFFECT — PROGRESSIVE ENHANCEMENT
+   ============================================ */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .kpi-card,
+    .chart-card,
+    .wide-card,
+    .match-row,
+    .lane-card,
+    .ranking-table,
+    .table-wrap,
+    .champ-lane-card {
+        background: var(--glass);
+    }
 }
