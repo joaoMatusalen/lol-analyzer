@@ -1,7 +1,6 @@
 /* ============================================
    BASE RESET & VARIABLES
    ============================================ */
-
 *, *::before, *::after {
     margin: 0;
     padding: 0;
@@ -56,7 +55,6 @@ body::before {
 /* ============================================
    HEADER
    ============================================ */
-
 .header {
     padding: 22px 0;
     border-bottom: 1px solid var(--border);
@@ -95,7 +93,7 @@ body::before {
     justify-content: center;
 }
 
-/* ── Header search box ── */
+/* Header search box */
 .header-search-fields {
     display: flex;
     align-items: center;
@@ -154,7 +152,7 @@ body::before {
     opacity: 0.85;
 }
 
-/* ── Language switcher ── */
+/* Language switcher */
 .lang-switcher {
     position: relative;
     margin-left: 30px;
@@ -227,7 +225,6 @@ body::before {
 /* ============================================
    BANNER
    ============================================ */
-
 .dashboard-banner-simple {
     margin: 32px 0 8px;
     padding: 24px 0 28px;
@@ -266,10 +263,52 @@ body::before {
     line-height: 1.6;
 }
 
+/* Banner update button */
+.banner-update-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.banner-update-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: transparent;
+    border: 1px solid var(--gold-border);
+    border-radius: 100px;
+    color: var(--gold);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.banner-update-btn:hover:not(:disabled) {
+    background: var(--gold-dim);
+    border-color: var(--gold);
+}
+
+.banner-update-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.banner-update-timer {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    font-variant-numeric: tabular-nums;
+}
+
 /* ============================================
    CLASSIC-ONLY INFO ICON & TOOLTIP
    ============================================ */
-
 .classic-info-icon {
     margin-left: auto;
     display: inline-flex;
@@ -287,7 +326,7 @@ body::before {
     color: var(--gold);
 }
 
-/* Tooltip fixado no body via JS — não cortado pelo overflow:hidden dos cards */
+/* Fixed tooltip via JS */
 #classic-tooltip {
     position: fixed;
     background: rgba(10, 22, 40, 0.97);
@@ -315,7 +354,6 @@ body::before {
 /* ============================================
    HERO INSIGHT BADGES
    ============================================ */
-
 .hero-badge-insight {
     display: inline-flex;
     align-items: center;
@@ -355,7 +393,6 @@ body::before {
 /* ============================================
    SECTION STRUCTURE
    ============================================ */
-
 .dashboard-section {
     padding: 52px 0 16px;
 }
@@ -416,7 +453,6 @@ body::before {
 /* ============================================
    CHAMPION HERO CARD
    ============================================ */
-
 .champion-hero {
     display: flex;
     align-items: center;
@@ -521,7 +557,6 @@ body::before {
 /* ============================================
    KPI GRID & CARDS
    ============================================ */
-
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
@@ -643,7 +678,6 @@ body::before {
 /* ============================================
    WIDE CARDS ROW
    ============================================ */
-
 .wide-cards-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -708,7 +742,6 @@ body::before {
 /* ============================================
    OBJECTIVES CARD
    ============================================ */
-
 .objectives-display {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -761,7 +794,6 @@ body::before {
 /* ============================================
    PINGS CARD
    ============================================ */
-
 .ping-icon {
     width: 22px;
     height: 22px;
@@ -807,7 +839,6 @@ body::before {
 /* ============================================
    CHART SECTIONS
    ============================================ */
-
 .chart-card {
     background: var(--glass);
     backdrop-filter: blur(12px);
@@ -882,9 +913,8 @@ body::before {
 }
 
 /* ============================================
-   FREQUENCY CHART (barras verticais + ícones)
+   FREQUENCY CHART
    ============================================ */
-
 .lane-chart-container {
     display: flex;
     align-items: stretch;
@@ -945,195 +975,8 @@ body::before {
 }
 
 /* ============================================
-   FOOTER
-   ============================================ */
-
-.footer {
-    border-top: 1px solid var(--border);
-    text-align: center;
-    margin: 48px 0 24px;
-    padding-top: 24px;
-}
-
-.footer-content p {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    margin-bottom: 10px;
-}
-
-.social-links {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 8px;
-}
-
-.social-link {
-    text-decoration: none;
-    color: var(--text-muted);
-    font-size: 1.1rem;
-    transition: color 0.25s ease, filter 0.25s ease;
-}
-
-.social-link:hover {
-    color: var(--gold);
-    filter: drop-shadow(0 0 6px rgba(201,170,113,0.5));
-}
-
-/* ============================================
-   ANIMATIONS
-   ============================================ */
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes heroEntrance {
-    from { opacity: 0; transform: translateY(24px) scale(0.98); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes pulseGlow {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50%       { opacity: 1;   transform: scale(1.06); }
-}
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-
-@media (max-width: 768px) {
-    .header-content {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 12px;
-        text-align: center;
-    }
-
-    .nav-content {
-        display: contents;
-    }
-
-    /* Linha 1: logo + globo lado a lado, centrado */
-    .logo {
-        flex: 0 0 auto;
-        order: 1;
-    }
-
-    .lang-switcher {
-        order: 2;
-        margin-left: 8px;
-        align-self: center;
-    }
-
-    /* Linha 2: search ocupa largura total */
-    .header-search {
-        order: 3;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-    }
-
-    .header-search-fields {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .section-header h2 { font-size: 1.6rem; }
-
-    .champion-hero {
-        flex-direction: column;
-        text-align: center;
-        padding: 28px 24px;
-        gap: 20px;
-    }
-
-    .hero-insights { justify-content: center; }
-
-    .champion-hero-name { font-size: 1.8rem; }
-
-    .kpi-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 14px;
-    }
-
-    .wide-cards-row  { grid-template-columns: 1fr; }
-    .charts-two-col  { grid-template-columns: 1fr; }
-
-    .chart-canvas { height: 240px !important; }
-    .chart-tabs   { gap: 6px; }
-    .chart-tab    { font-size: 0.73rem; padding: 5px 12px; }
-    .value        { font-size: 2rem; }
-}
-
-@media (max-width: 480px) {
-    .container { padding: 0 14px; }
-    .logo h1   { font-size: 1.2rem; }
-
-    .lang-globe-btn { width: 30px; height: 30px; font-size: 0.85rem; }
-    .lang-dropdown  { min-width: 130px; }
-
-    .kpi-grid { grid-template-columns: 1fr; gap: 12px; }
-
-    .wide-card .multikill-display { grid-template-columns: repeat(2, 1fr); }
-    .objectives-display           { grid-template-columns: repeat(2, 1fr); }
-
-    .value             { font-size: 1.75rem; }
-    .champion-hero-img { width: 90px; height: 90px; }
-    .champion-hero-name{ font-size: 1.5rem; }
-}
-
-/* ============================================
-   BANNER UPDATE BUTTON
-   ============================================ */
-
-.banner-update-wrap {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 20px;
-}
-
-.banner-update-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 20px;
-    background: transparent;
-    border: 1px solid var(--gold-border);
-    border-radius: 100px;
-    color: var(--gold);
-    font-size: 0.85rem;
-    font-weight: 600;
-    font-family: 'Inter', sans-serif;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.banner-update-btn:hover:not(:disabled) {
-    background: var(--gold-dim);
-    border-color: var(--gold);
-}
-
-.banner-update-btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
-.banner-update-timer {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    letter-spacing: 0.05em;
-    font-variant-numeric: tabular-nums;
-}
-
-/* ============================================
    MATCH HISTORY
    ============================================ */
-
 .match-history-list {
     display: flex;
     flex-direction: column;
@@ -1263,29 +1106,9 @@ body::before {
     color: var(--text-muted);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .match-row {
-        grid-template-columns: 44px 1fr 70px;
-        grid-template-rows: auto auto;
-        gap: 10px 12px;
-    }
-
-    .match-kda-block { grid-column: 2; grid-row: 2; align-items: flex-start; }
-    .match-stats     { display: none; }
-    .match-meta      { grid-column: 3; grid-row: 2; }
-}
-
-@media (max-width: 480px) {
-    .match-row { grid-template-columns: 40px 1fr; }
-    .match-result-label { display: none; }
-    .match-meta { grid-column: 2; grid-row: 2; align-items: flex-start; }
-}
-
 /* ============================================
-   ERRO INLINE — DASHBOARD
+   INLINE ERROR — DASHBOARD
    ============================================ */
-
 .dash-error-box {
     display: flex;
     align-items: center;
@@ -1327,4 +1150,184 @@ body::before {
 
 .dash-error-box .error-close:hover {
     background: rgba(255, 99, 99, 0.1);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.footer {
+    border-top: 1px solid var(--border);
+    text-align: center;
+    margin: 48px 0 24px;
+    padding-top: 24px;
+}
+
+.footer-content p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.social-link {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    transition: color 0.25s ease, filter 0.25s ease;
+}
+
+.social-link:hover {
+    color: var(--gold);
+    filter: drop-shadow(0 0 6px rgba(201,170,113,0.5));
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heroEntrance {
+    from { opacity: 0; transform: translateY(24px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pulseGlow {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%       { opacity: 1;   transform: scale(1.06); }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .header-content {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .nav-content {
+        display: contents;
+    }
+
+    .logo {
+        flex: 0 0 auto;
+        order: 1;
+    }
+
+    .lang-switcher {
+        order: 2;
+        margin-left: 8px;
+        align-self: center;
+    }
+
+    .header-search {
+        order: 3;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .header-search-fields {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .section-header h2 { font-size: 1.6rem; }
+
+    .champion-hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 28px 24px;
+        gap: 20px;
+    }
+
+    .hero-insights { justify-content: center; }
+
+    .champion-hero-name { font-size: 1.8rem; }
+
+    .kpi-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+    }
+
+    .wide-cards-row  { grid-template-columns: 1fr; }
+    .charts-two-col  { grid-template-columns: 1fr; }
+
+    .chart-canvas { height: 240px !important; }
+    .chart-tabs   { gap: 6px; }
+    .chart-tab    { font-size: 0.73rem; padding: 5px 12px; }
+    .value        { font-size: 2rem; }
+    
+    .match-row {
+        grid-template-columns: 44px 1fr 70px;
+        grid-template-rows: auto auto;
+        gap: 10px 12px;
+    }
+
+    .match-kda-block { grid-column: 2; grid-row: 2; align-items: flex-start; }
+    .match-stats     { display: none; }
+    .match-meta      { grid-column: 3; grid-row: 2; }
+
+    .chart-card {
+        padding: 20px 14px; 
+        overflow-x: auto;   
+        scrollbar-width: thin;
+    }
+
+    .chart-canvas {
+        min-width: auto; 
+    }
+
+    .lane-bar-label{
+        margin: 0 30px 0 30px;
+    }
+
+.lane-chart-container {
+        /* Muda de 'center' para 'flex-start' para liberar o scroll pro lado direito sem cortar a esquerda */
+        justify-content: flex-start; 
+        
+        /* Opcional: adiciona um espacinho extra no final do scroll para não ficar colado na borda */
+        padding-right: 24px; 
+    }
+
+    /* 2. AUMENTA O GRÁFICO DE 24 HORAS */
+    #time-hourly-wr {
+        /* Muda de 'center' para 'flex-start' para liberar o scroll pro lado direito sem cortar a esquerda */
+        justify-content: flex-start; 
+        
+        /* Opcional: adiciona um espacinho extra no final do scroll para não ficar colado na borda */
+        padding-right: 24px; 
+    }
+}
+
+@media (max-width: 480px) {
+    .container { padding: 0 14px; }
+    .logo h1   { font-size: 1.2rem; }
+
+    .header-search-fields { gap: 14px; }
+
+    .lang-globe-btn { width: 30px; height: 30px; font-size: 0.85rem; }
+    .lang-dropdown  { min-width: 130px; }
+
+    .kpi-grid { grid-template-columns: 1fr; gap: 12px; }
+
+    .wide-card .kda-detail-display { grid-template-columns: repeat(1, 1fr); }
+    .wide-card .multikill-display  { grid-template-columns: repeat(2, 1fr); }
+    .pings-grid                    { grid-template-columns: repeat(3, 1fr); }  
+    .objectives-display            { grid-template-columns: repeat(2, 1fr); }
+
+    .value             { font-size: 1.75rem; }
+    .champion-hero-img { width: 90px; height: 90px; }
+    .champion-hero-name{ font-size: 1.5rem; }
 }
