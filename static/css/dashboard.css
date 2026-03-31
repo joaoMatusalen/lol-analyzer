@@ -26,7 +26,7 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: linear-gradient(160deg, #080E1A 0%, #0F2035 45%, #152840 100%);
     color: #ffffff;
     min-height: 100vh;
@@ -338,7 +338,8 @@ body::before {
     line-height: 1.5;
     padding: 8px 12px;
     white-space: normal;
-    max-width: min(280px, calc(100vw - 24px));
+    max-width: 280px;
+    width: calc(100vw - 24px);
     pointer-events: none;
     z-index: 9999;
     opacity: 0;
@@ -438,6 +439,7 @@ body::before {
     font-family: 'Cinzel', serif;
     font-size: 2rem;
     font-weight: 700;
+    color: var(--gold);
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -502,8 +504,9 @@ body::before {
     border: 2px solid transparent;
     background: linear-gradient(135deg, var(--gold), transparent 60%) border-box;
     -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: destination-out;
-    mask-composite: exclude;
+    -webkit-mask-composite: source-out;
+    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    mask-composite: subtract;
     z-index: 3;
     pointer-events: none;
 }
@@ -1096,7 +1099,6 @@ body::before {
 .match-meta {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
     gap: 4px;
 }
 
@@ -1289,24 +1291,17 @@ body::before {
         min-width: auto; 
     }
 
-    .lane-bar-label{
+    .lane-bar-label {
         margin: 0 30px 0 30px;
     }
 
-.lane-chart-container {
-        /* Muda de 'center' para 'flex-start' para liberar o scroll pro lado direito sem cortar a esquerda */
+    .lane-chart-container {
         justify-content: flex-start; 
-        
-        /* Opcional: adiciona um espacinho extra no final do scroll para não ficar colado na borda */
         padding-right: 24px; 
     }
 
-    /* 2. AUMENTA O GRÁFICO DE 24 HORAS */
     #time-hourly-wr {
-        /* Muda de 'center' para 'flex-start' para liberar o scroll pro lado direito sem cortar a esquerda */
         justify-content: flex-start; 
-        
-        /* Opcional: adiciona um espacinho extra no final do scroll para não ficar colado na borda */
         padding-right: 24px; 
     }
 }
