@@ -63,7 +63,6 @@ lol-analyzer/
 │       └── deploy.yml               # CI/CD pipeline for automatic deployment
 ├── api/                             # Python package with business logic
 │   ├── __init__.py                  # API package initialization
-│   ├── __pycache__/                 # Compiled Python cache (auto-generated)
 │   ├── analytics.py                 # Statistical analysis functions (KDA, winrate, charts)
 │   ├── client.py                    # HTTP client for Riot Games and Data Dragon APIs
 │   ├── parser.py                    # Match data parsing and processing
