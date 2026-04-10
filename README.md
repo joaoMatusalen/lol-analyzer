@@ -68,7 +68,6 @@ lol-analyzer/
 │   ├── parser.py                    # Match data parsing and processing
 │   └── service.py                   # Main orchestration for data collection and analysis
 ├── server/                          # Server configurations and async jobs
-│   ├── __pycache__/                 # Compiled Python cache (auto-generated)
 │   ├── jobs.py                      # Background job system for async processing
 │   └── wsgi.py                      # WSGI entry point for the server
 ├── static/                          # Static files served by Flask
